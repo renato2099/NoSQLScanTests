@@ -34,10 +34,13 @@ public class DataLoader {
         Set<Future> futures = new HashSet<>();
         long extras = nOps % nThreads != 0?nOps % nThreads:0;
 
+        long tOps = nOps/nThreads;
         for (int i = 0; i < nThreads-1; i++) {
-            futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, nOps/nThreads, bSize, (i*nOps/nThreads)+1)));
+            long rStart = (i*tOps)+1;
+            futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, tOps, bSize, rStart)));
         }
-        futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, nOps/nThreads + extras, bSize, (nOps/nThreads)+1)));
+        long rStart = ((nThreads-1)*tOps)+1;
+        futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, tOps + extras, bSize, rStart)));
 
         for (Future fut : futures) {
             try {

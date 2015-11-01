@@ -54,7 +54,7 @@ public class CassandraKv extends Kv {
                 }
                 // execute remaining
                 if (nOps - (nBatch*bSize) > 0) {
-                    batch = getBatch(nOps - (nBatch*bSize), nBatch* Thread.currentThread().getId());
+                    batch = getBatch(nOps - (nBatch*bSize), idStart);
                     session.execute(batch);
                 }
             }
@@ -64,12 +64,14 @@ public class CassandraKv extends Kv {
     private static Batch getBatch(long bSize, long idStart) {
         Batch batch = QueryBuilder.batch();
         DataGenerator dGen = new DataGenerator();
+        StringBuilder sb = new StringBuilder();
         for (int j = 1; j <= bSize; j++) {
             RegularStatement insert = QueryBuilder.insertInto(TABLE_NAME).values(
                     new String[] { "id", "last", "first", "salary", "service_yrs", "country" },
                     new Object[] { idStart, dGen.genText(15), dGen.genText(20), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
             insert.setConsistencyLevel(ConsistencyLevel.QUORUM);
+            sb.append(" ").append(idStart);
             idStart++;
             batch.add(insert);
         }
