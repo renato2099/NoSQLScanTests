@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 public class DataLoader {
 
     private ExecutorService executors;
-    public static int DEFAULT_NTHREADS = 1;
+    public static int DEFAULT_NTHREADS = 4;
     private int nThreads;
 
     public DataLoader() {
@@ -32,9 +32,13 @@ public class DataLoader {
 
     public void load(long nOps, FactoryRunnable.kvStores kvStore, long bSize) {
         Set<Future> futures = new HashSet<>();
-        for (int i = 0; i < nThreads; i++) {
-            futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, nOps, bSize)));
+        long extras = nOps % nThreads != 0?nOps % nThreads:0;
+
+        for (int i = 0; i < nThreads-1; i++) {
+            futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, nOps/nThreads, bSize, (i*nOps/nThreads)+1)));
         }
+        futures.add(executors.submit(FactoryRunnable.getRunnable(kvStore, nOps/nThreads + extras, bSize, (nOps/nThreads)+1)));
+
         for (Future fut : futures) {
             try {
                 fut.get();

@@ -10,11 +10,11 @@ import org.apache.log4j.Logger;
 public class FactoryRunnable {
 
     public static Logger LOG = Logger.getLogger(FactoryRunnable.class);
-    public static Runnable getRunnable(kvStores kvStore, final long nOps, final long bSize) {
+    public static Runnable getRunnable(kvStores kvStore, final long nOps, final long bSize, final long rStart) {
         Runnable loader = null;
         switch(kvStore) {
             case CASSANDRA:
-                loader = CassandraKv.getLoader(nOps, bSize);
+                loader = CassandraKv.getLoader(nOps, bSize, rStart);
                 break;
             case HBASE:
                 break;

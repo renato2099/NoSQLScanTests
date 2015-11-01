@@ -36,18 +36,21 @@ public class CassandraKv extends Kv {
         }
     }
 
-    public static Runnable getLoader(final long nOps, final long bSize) {
+    public static Runnable getLoader(final long nOps, final long bSize, final long rStart) {
         return new Runnable() {
             private final Session session = cluster.connect(CONTAINER);
+
             @Override
             public void run() {
                 long nBatch = nOps/bSize;
                 Batch batch;
+                long idStart = rStart;
                 for (int i = 1; i <= nBatch; i++) {
                     // generate statement of size bSize
-                    batch = getBatch(bSize, i* Thread.currentThread().getId());
+                    batch = getBatch(bSize, idStart);
                     // commit batch
                     session.execute(batch);
+                    idStart += bSize;
                 }
                 // execute remaining
                 if (nOps - (nBatch*bSize) > 0) {
@@ -58,15 +61,16 @@ public class CassandraKv extends Kv {
         };
     }
 
-    private static Batch getBatch(long bSize, long bNum) {
+    private static Batch getBatch(long bSize, long idStart) {
         Batch batch = QueryBuilder.batch();
         DataGenerator dGen = new DataGenerator();
         for (int j = 1; j <= bSize; j++) {
             RegularStatement insert = QueryBuilder.insertInto(TABLE_NAME).values(
                     new String[] { "id", "last", "first", "salary", "service_yrs", "country" },
-                    new Object[] { j*bNum, dGen.genText(15), dGen.genText(20), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
+                    new Object[] { idStart, dGen.genText(15), dGen.genText(20), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
             insert.setConsistencyLevel(ConsistencyLevel.QUORUM);
+            idStart++;
             batch.add(insert);
         }
         return batch;

@@ -15,7 +15,7 @@ public class DataLoaderTest {
 
     private static final long DEFAULT_BATCH = 10;
     private static Logger LOG = Logger.getLogger(DataLoaderTest.class);
-    private static final long DEFAULT_OPS = 10;
+    private static final long DEFAULT_OPS = 100;
 
     @Before
     public void setUp() {

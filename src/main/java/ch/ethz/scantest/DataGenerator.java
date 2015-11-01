@@ -37,6 +37,10 @@ public class DataGenerator {
         return random.nextDouble();
     }
 
+    public int genInt(int bound) {
+        return random.nextInt(bound);
+    }
+
     public int genInt() {
         return random.nextInt();
     }
