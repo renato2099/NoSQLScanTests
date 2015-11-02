@@ -13,6 +13,14 @@ public class DataLoaderTest {
     public static Kv kv;
     public static Logger Log = Logger.getLogger(DataLoaderTest.class);
 
+    public long getPercentage(String container, String tableName, double percentage) {
+        long startTime = System.nanoTime();
+        long actual = kv.select(kv.getContainerName(), kv.getTableName(), percentage);
+        long endTime = System.nanoTime();
+        Log.info(String.format("[Scan %s] Elapsed:%d", kv.getType().toString(), (endTime - startTime) / 1000));
+        return actual;
+    }
+
     public long getAll(String schName, String tabName) {
         long startTime = System.nanoTime();
         long actual = kv.selectAll(kv.getContainerName(), kv.getTableName());

@@ -7,6 +7,9 @@ import ch.ethz.scantest.DataGenerator;
 import ch.ethz.scantest.Utils;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.hadoop.conf.Configuration;
@@ -154,6 +157,28 @@ public class HBaseKv implements Kv {
             e.printStackTrace();
         }
         return cnt;
+    }
+
+    @Override
+    public long select(String schema, String table, double percent) {
+        Filter colFilter = new SingleColumnValueFilter(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("s"),
+                CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(percent));
+        Scan scan = new Scan();
+        scan.setFilter(colFilter);
+        long cnt = 0;
+        try {
+            HTable hTable = new HTable(hbaseConf, CONTAINER);
+            ResultScanner resScanner = hTable.getScanner(scan);
+            Result next = resScanner.next();
+            while (next != null) {
+                cnt++;
+                next = resScanner.next();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return cnt;
+
     }
 
     @Override

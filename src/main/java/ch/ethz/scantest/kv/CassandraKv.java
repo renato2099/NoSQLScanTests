@@ -6,6 +6,7 @@ import ch.ethz.scantest.DataGenerator;
 import ch.ethz.scantest.Utils;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.Batch;
+import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import org.apache.log4j.Logger;
@@ -89,6 +90,16 @@ public class CassandraKv implements Kv {
     }
 
     @Override
+    public long select(String schema, String table, double percent) {
+        Session session = cluster.connect();
+//        Clause salary = QueryBuilder.lt("salary", percent);
+        //Statement stmt = QueryBuilder.select().all().from(CONTAINER, TABLE_NAME).where(salary).allowFiltering();
+        String stmtt = String.format("select * from scanks.employees where salary < %1.4f allow filtering;", percent);
+//        return session.execute(stmt).all().size();
+        return session.execute(stmtt).all().size();
+    }
+
+    @Override
     public String getType() {
         return CASSANDRA.toString();
     }
@@ -129,10 +140,13 @@ public class CassandraKv implements Kv {
         // create table
         sb.setLength(0);
         sb.append("CREATE TABLE ").append(CONTAINER).append(".").append(TABLE_NAME);
-        sb.append("(").append("id bigint PRIMARY KEY,");
+        sb.append("(").append("id bigint,");
         sb.append("last varchar,").append("first varchar,");
         sb.append("salary double,").append("service_yrs int,");
-        sb.append("country varchar").append(");");
+        sb.append("country varchar");
+        sb.append(",").append("PRIMARY KEY (id, salary)");
+        sb.append(");");
+
         try {
             session.execute(sb.toString());
         } catch (com.datastax.driver.core.exceptions.AlreadyExistsException ex) {

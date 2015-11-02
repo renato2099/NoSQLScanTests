@@ -1,24 +1,28 @@
 package ch.ethz.scantest.kv;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 /**
  * Created by renatomarroquin on 2015-11-01.
  */
 public interface Kv {
-    String getTableName();
-
-    String getContainerName();
-
     enum kvStores {
-        CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), VOLDEMORT("voldemort"), RIAK("riak");
+        CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), RIAK("riak");
         private String val;
         kvStores(String v) {
             this.val = v;
         }
     }
+
+    /**
+     * Gets table/column family name
+     * @return
+     */
+    String getTableName();
+
+    /**
+     * Gets keyspace/table
+     * @return
+     */
+    String getContainerName();
 
     /**
      * Initializes KvStores.
@@ -37,6 +41,15 @@ public interface Kv {
      * @return
      */
     long selectAll(String schema, String table);
+
+    /**
+     * Selects a percentage of the table.
+     * @param schema
+     * @param table
+     * @param percent
+     * @return
+     */
+    long select(String schema, String table, double percent);
 
     /**
      * Gets a kv type
