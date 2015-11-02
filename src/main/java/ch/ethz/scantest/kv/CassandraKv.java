@@ -94,6 +94,16 @@ public class CassandraKv implements Kv {
     }
 
     @Override
+    public String getTableName() {
+        return TABLE_NAME;
+    }
+
+    @Override
+    public String getContainerName() {
+        return CONTAINER;
+    }
+
+    @Override
     public void initialize() {
         Properties props = Utils.loadProperties(CASSANDRA_PROPS);
         String cNode = props.getProperty("entry_node");

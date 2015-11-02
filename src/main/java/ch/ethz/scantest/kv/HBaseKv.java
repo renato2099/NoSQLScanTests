@@ -5,7 +5,7 @@ package ch.ethz.scantest.kv;
  */
 import ch.ethz.scantest.DataGenerator;
 import ch.ethz.scantest.Utils;
-import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
@@ -25,8 +25,8 @@ public class HBaseKv implements Kv {
     public static final String TABLE_NAME = "employees";
     private static final String HBASE_PROPS = "hbase.properties";
     public static Logger Log = Logger.getLogger(HBaseKv.class);
-    public static HTable hTable;
-    protected static Configuration hbaseConf;
+    private static HBaseAdmin admin;
+    private static Configuration hbaseConf;
 
     public static Runnable getLoader(final long nOps, final long bSize, final long rStart) {
         return new Runnable() {
@@ -35,19 +35,19 @@ public class HBaseKv implements Kv {
             public void run() {
                 long nBatch = nOps / bSize;
                 long idStart = rStart;
+                HTable hTable = null;
                 try {
+                    hTable = new HTable(hbaseConf, CONTAINER);
                     for (int i = 1; i <= nBatch; i++) {
                         // generate statement of size bSize
-                        getBatch(bSize, idStart);
-                        // commit batch
-                        hTable.flushCommits();
+                        getBatch(bSize, idStart, hTable);
                         idStart += bSize;
                     }
                     // execute remaining
                     if (nOps - (nBatch * bSize) > 0) {
-                        getBatch(nOps - (nBatch * bSize), idStart);
-                        hTable.flushCommits();
+                        getBatch(nOps - (nBatch * bSize), idStart, hTable);
                     }
+                    hTable.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -55,17 +55,25 @@ public class HBaseKv implements Kv {
         };
     }
 
-    private static void getBatch(long bSize, long idStart) throws IOException {
+    private static void getBatch(long bSize, long idStart, HTable hTable) throws IOException {
         DataGenerator dGen = new DataGenerator();
         for (int j = 1; j <= bSize; j++) {
             Put put = new Put(Bytes.toBytes(idStart));
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("last"), Bytes.toBytes(dGen.genText(15)));
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("first"), Bytes.toBytes(dGen.genText(15)));
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("salary"), Bytes.toBytes(dGen.genDouble()));
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("service_yrs"), Bytes.toBytes(dGen.genInt()));
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("country"), Bytes.toBytes(dGen.getCountry()));
+            // last
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("l"), Bytes.toBytes(dGen.genText(15)));
+            // first
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("f"), Bytes.toBytes(dGen.genText(15)));
+            // salary
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("s"), Bytes.toBytes(dGen.genDouble()));
+            // service_yrs
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("sy"), Bytes.toBytes(dGen.genInt()));
+            // country
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("c"), Bytes.toBytes(dGen.getCountry()));
+            idStart ++;
             hTable.put(put);
         }
+        // commit batch
+        hTable.flushCommits();
     }
 
     /**
@@ -89,13 +97,30 @@ public class HBaseKv implements Kv {
     }
 
     @Override
+    public String getTableName() {
+        return TABLE_NAME;
+    }
+
+    @Override
+    public String getContainerName() {
+        return CONTAINER;
+    }
+
+    @Override
     public void initialize() {
         Properties props = Utils.loadProperties(HBASE_PROPS);
         String cNode = props.getProperty("entry_node");
         String port = props.getProperty("port");
         Log.info(cNode + port);
         try {
-            hTable = new HTable(hbaseConf, CONTAINER);
+            createHBaseConf();
+            admin = new HBaseAdmin(hbaseConf);
+            HTableDescriptor desc = new HTableDescriptor(CONTAINER);
+            desc.addFamily(new HColumnDescriptor(TABLE_NAME));
+            admin.createTable(desc);
+            Log.warn(String.format("[Load %s] Table %s created.", getType(), TABLE_NAME));
+        } catch (TableExistsException e) {
+            Log.warn(String.format("[Load %s] Table %s exists already!", getType(), TABLE_NAME));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -104,7 +129,10 @@ public class HBaseKv implements Kv {
     @Override
     public void destroy() {
         try {
-            hTable.close();
+            admin.disableTable(CONTAINER);
+            Log.warn(String.format("[Load %s] Table % disabled.", getType(), TABLE_NAME));
+            admin.deleteTable(CONTAINER);
+            Log.warn(String.format("[Load %s] Table % dropped.", getType(), TABLE_NAME));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -115,10 +143,12 @@ public class HBaseKv implements Kv {
         Scan scan = new Scan();
         long cnt = 0;
         try {
+            HTable hTable = new HTable(hbaseConf, CONTAINER);
             ResultScanner resScanner = hTable.getScanner(scan);
             Result next = resScanner.next();
             while (next != null) {
                 cnt++;
+                next = resScanner.next();
             }
         } catch (IOException e) {
             e.printStackTrace();

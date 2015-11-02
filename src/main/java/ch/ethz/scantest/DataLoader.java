@@ -1,5 +1,7 @@
 package ch.ethz.scantest;
 
+import org.mortbay.log.Log;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -51,5 +53,6 @@ public class DataLoader {
                 e.printStackTrace();
             }
         }
+        Log.info(String.format("[Load %s] All threads completed", kvStore.toString()));
     }
 }

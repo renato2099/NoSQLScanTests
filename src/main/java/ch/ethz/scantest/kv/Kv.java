@@ -8,6 +8,10 @@ import java.util.Properties;
  * Created by renatomarroquin on 2015-11-01.
  */
 public interface Kv {
+    String getTableName();
+
+    String getContainerName();
+
     enum kvStores {
         CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), VOLDEMORT("voldemort"), RIAK("riak");
         private String val;

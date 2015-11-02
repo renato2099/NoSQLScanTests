@@ -19,6 +19,7 @@ public class DataLoaderHBaseTest extends DataLoaderTest {
     @Test
     public void testCassandra() {
         loadKv(HBASE, DEFAULT_OPS, DEFAULT_BATCH);
-        getAll(HBaseKv.CONTAINER, HBaseKv.TABLE_NAME);
+        long actual = getAll(HBaseKv.CONTAINER, HBaseKv.TABLE_NAME);
+        Log.info(String.format("[Scan %s] Expected:%d Found:%d", HBASE.toString(), DEFAULT_OPS, actual));
     }
 }
