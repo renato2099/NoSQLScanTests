@@ -1,6 +1,9 @@
 package ch.ethz.scantest.kv;
 
+import static ch.ethz.scantest.kv.Kv.kvStores.*;
+
 import ch.ethz.scantest.DataGenerator;
+import ch.ethz.scantest.Utils;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -13,13 +16,13 @@ import java.util.Properties;
 /**
  * Created by renatomarroquin on 2015-11-01.
  */
-public class CassandraKv extends Kv {
+public class CassandraKv implements Kv {
 
     private static final int HIGHER_TIMEOUT = 10000;
     private static final String CASSANDRA_PROPS = "cassandra.properties";
-    private static final String CONTAINER = "scanks";
+    public static final String CONTAINER = "scanks";
     private static final String REPL_FACTOR = "1";
-    private static final String TABLE_NAME = "employees";
+    public static final String TABLE_NAME = "employees";
     private static Cluster cluster;
 
     public static Logger Log = Logger.getLogger(CassandraKv.class);
@@ -86,8 +89,13 @@ public class CassandraKv extends Kv {
     }
 
     @Override
+    public String getType() {
+        return CASSANDRA.toString();
+    }
+
+    @Override
     public void initialize() {
-        Properties props = loadProperties(CASSANDRA_PROPS);
+        Properties props = Utils.loadProperties(CASSANDRA_PROPS);
         String cNode = props.getProperty("entry_node");
         String port = props.getProperty("port");
         Log.info(cNode + port);
@@ -120,9 +128,7 @@ public class CassandraKv extends Kv {
         } catch (com.datastax.driver.core.exceptions.AlreadyExistsException ex) {
             Log.warn("[LoadOp] Table already exists!");
         }
-
     }
-
 
     @Override
     public void destroy() {

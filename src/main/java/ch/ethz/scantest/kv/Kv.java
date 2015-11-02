@@ -7,16 +7,24 @@ import java.util.Properties;
 /**
  * Created by renatomarroquin on 2015-11-01.
  */
-public abstract class Kv {
+public interface Kv {
+    enum kvStores {
+        CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), VOLDEMORT("voldemort"), RIAK("riak");
+        private String val;
+        kvStores(String v) {
+            this.val = v;
+        }
+    }
+
     /**
      * Initializes KvStores.
      */
-    public abstract void initialize();
+    void initialize();
 
     /**
      * Closes KvStores.
      */
-    public abstract void destroy();
+    void destroy();
 
     /**
      * Selects all records from a schema.table
@@ -24,17 +32,12 @@ public abstract class Kv {
      * @param table
      * @return
      */
-    public abstract long selectAll(String schema, String table);
+    long selectAll(String schema, String table);
 
-    public Properties loadProperties(String props) {
-        Properties prop = new Properties();
-        InputStream in = getClass().getClassLoader().getResourceAsStream(props);
-        try {
-            prop.load(in);
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return prop;
-    }
+    /**
+     * Gets a kv type
+     * @return
+     */
+    String getType();
+
 }

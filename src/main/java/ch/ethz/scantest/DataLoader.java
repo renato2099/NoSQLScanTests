@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static ch.ethz.scantest.kv.Kv.*;
+
 
 /**
  * Created by marenato on 30.10.15.
@@ -30,7 +32,7 @@ public class DataLoader {
         executors = Executors.newFixedThreadPool(nt);
     }
 
-    public void load(long nOps, FactoryRunnable.kvStores kvStore, long bSize) {
+    public void load(long nOps, kvStores kvStore, long bSize) {
         Set<Future> futures = new HashSet<>();
         long extras = nOps % nThreads != 0?nOps % nThreads:0;
 
@@ -45,13 +47,9 @@ public class DataLoader {
         for (Future fut : futures) {
             try {
                 fut.get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
-
-
     }
 }

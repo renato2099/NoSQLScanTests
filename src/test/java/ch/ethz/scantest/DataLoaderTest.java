@@ -1,43 +1,38 @@
 package ch.ethz.scantest;
 
-import static ch.ethz.scantest.FactoryRunnable.kvStores.*;
-
 import ch.ethz.scantest.kv.CassandraKv;
+import ch.ethz.scantest.kv.Kv;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 
 /**
- * Created by marenato on 30.10.15.
+ * Created by marenato on 02.11.15.
  */
 public class DataLoaderTest {
-
-    private static final long DEFAULT_BATCH = 10;
+    public static final long DEFAULT_BATCH = 10;
+    public static final long DEFAULT_OPS = 100;
+    public static Kv kv;
     private static Logger LOG = Logger.getLogger(DataLoaderTest.class);
-    private static final long DEFAULT_OPS = 100;
 
-    @Before
-    public void setUp() {
-        //todo maybe changing this?
-        CassandraKv kv = new CassandraKv();
-        kv.initialize();
+    public void getAll(String schName, String tabName) {
+        long startTime = System.nanoTime();
+        kv.selectAll(CassandraKv.CONTAINER, CassandraKv.TABLE_NAME);
+        long endTime = System.nanoTime();
+        LOG.info(String.format("[Scan %s] Elapsed:%d", kv.getType(), (endTime - startTime) / 1000));
     }
 
-    @Test
-    public void testCassandra() {
+    public void loadKv(Kv.kvStores kvType, long nOps, long bSize) {
         DataLoader dl = new DataLoader();
         long startTime = System.nanoTime();
-        long nOps = DEFAULT_OPS;
-        long bSize = DEFAULT_BATCH;
-        dl.load(nOps, CASSANDRA, bSize);
+        dl.load(nOps, kvType, bSize);
         long endTime = System.nanoTime();
-        LOG.info(String.format("[LoadOp] Elapsed:%d", (endTime - startTime) / 1000));
+        LOG.info(String.format("[Load %s] Elapsed:%d", kvType.toString() ,(endTime - startTime) / 1000));
+
     }
 
     @After
     public void destroy() {
-//        CassandraKv kv = new CassandraKv();
-//        kv.destroy();
+        kv.destroy();
     }
 }

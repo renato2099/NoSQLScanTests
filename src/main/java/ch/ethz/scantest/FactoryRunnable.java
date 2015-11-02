@@ -2,6 +2,9 @@ package ch.ethz.scantest;
 
 
 import ch.ethz.scantest.kv.CassandraKv;
+import static ch.ethz.scantest.kv.Kv.kvStores;
+
+import ch.ethz.scantest.kv.HBaseKv;
 import org.apache.log4j.Logger;
 
 /**
@@ -10,29 +13,25 @@ import org.apache.log4j.Logger;
 public class FactoryRunnable {
 
     public static Logger LOG = Logger.getLogger(FactoryRunnable.class);
+
     public static Runnable getRunnable(kvStores kvStore, final long nOps, final long bSize, final long rStart) {
-        Runnable loader = null;
+        LOG.debug(String.format("Creating %s loader. [TotalOps] %d. [BatchSize] %d. [RangeStart] %d",
+                kvStore.toString(), nOps, bSize, rStart));
         switch(kvStore) {
             case CASSANDRA:
-                loader = CassandraKv.getLoader(nOps, bSize, rStart);
-                break;
+                return CassandraKv.getLoader(nOps, bSize, rStart);
             case HBASE:
-                break;
+                return HBaseKv.getLoader(nOps, bSize, rStart);
             case HYPERTABLE:
                 break;
             case VOLDEMORT:
                 break;
             case RIAK:
                 break;
+            default:
+                throw new IllegalArgumentException("KeyValue store not supported!");
         }
-        return loader;
+        return null;
     }
 
-    public static enum kvStores {
-        CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), VOLDEMORT("voldemort"), RIAK("riak");
-        private String val;
-        kvStores(String v) {
-            this.val = v;
-        }
-    }
 }
