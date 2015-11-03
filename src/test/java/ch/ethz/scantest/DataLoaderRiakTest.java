@@ -1,27 +1,28 @@
 package ch.ethz.scantest;
 
-import ch.ethz.scantest.kv.CassandraKv;
 import ch.ethz.scantest.kv.HBaseKv;
+import ch.ethz.scantest.kv.RiakKv;
 import org.junit.Before;
 import org.junit.Test;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.scantest.kv.Kv.kvStores.HBASE;
+import static ch.ethz.scantest.kv.Kv.kvStores.RIAK;
 
 /**
- * Created by marenato on 02.11.15.
+ * Created by renatomarroquin on 2015-11-02.
  */
-public class DataLoaderHBaseTest extends DataLoaderTest {
+public class DataLoaderRiakTest extends DataLoaderTest {
     @Before
     public void setUp() {
-        kv = new HBaseKv();
+        kv = new RiakKv();
         kv.initialize();
     }
 
     @Test
     public void testGetAll() {
-        loadKv(HBASE, DEFAULT_OPS, DEFAULT_BATCH);
-        long actual = getAll(HBaseKv.CONTAINER, HBaseKv.TABLE_NAME);
-        Log.info(String.format("[Scan %s] Expected:%d Found:%d", HBASE.toString(), DEFAULT_OPS, actual));
+        loadKv(RIAK, DEFAULT_OPS, DEFAULT_BATCH);
+        long actual = getAll(RiakKv.CONTAINER, RiakKv.TABLE_NAME);
+        Log.info(String.format("[Scan %s] Expected:%d Found:%d", RIAK.toString(), DEFAULT_OPS, actual));
     }
 
     @Test

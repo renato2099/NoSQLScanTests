@@ -5,6 +5,8 @@ import ch.ethz.scantest.kv.CassandraKv;
 import static ch.ethz.scantest.kv.Kv.kvStores;
 
 import ch.ethz.scantest.kv.HBaseKv;
+import ch.ethz.scantest.kv.HyperTableKv;
+import ch.ethz.scantest.kv.RiakKv;
 import org.apache.log4j.Logger;
 
 /**
@@ -12,10 +14,10 @@ import org.apache.log4j.Logger;
  */
 public class FactoryRunnable {
 
-    public static Logger LOG = Logger.getLogger(FactoryRunnable.class);
+    public static Logger Log = Logger.getLogger(FactoryRunnable.class);
 
     public static Runnable getRunnable(kvStores kvStore, final long nOps, final long bSize, final long rStart) {
-        LOG.debug(String.format("Creating %s loader. [TotalOps] %d. [BatchSize] %d. [RangeStart] %d",
+        Log.debug(String.format("Creating %s loader. [TotalOps] %d. [BatchSize] %d. [RangeStart] %d",
                 kvStore.toString(), nOps, bSize, rStart));
         switch(kvStore) {
             case CASSANDRA:
@@ -23,15 +25,12 @@ public class FactoryRunnable {
             case HBASE:
                 return HBaseKv.getLoader(nOps, bSize, rStart);
             case HYPERTABLE:
-                break;
-            case VOLDEMORT:
-                break;
+                return HyperTableKv.getLoader(nOps, bSize, rStart);
             case RIAK:
-                break;
+                return RiakKv.getLoader(nOps, bSize, rStart);
             default:
                 throw new IllegalArgumentException("KeyValue store not supported!");
         }
-        return null;
     }
 
 }

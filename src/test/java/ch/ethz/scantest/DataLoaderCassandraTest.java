@@ -22,7 +22,7 @@ public class DataLoaderCassandraTest extends DataLoaderTest {
     }
 
     @Test
-    public void testCassandra() {
+    public void testGetAll() {
         loadKv(CASSANDRA, DEFAULT_OPS, DEFAULT_BATCH);
         long actual = getAll(CassandraKv.CONTAINER, CassandraKv.TABLE_NAME);
         Log.info(String.format("[Scan %s] Expected:%d Found:%d", CASSANDRA.toString(), DEFAULT_OPS, actual));

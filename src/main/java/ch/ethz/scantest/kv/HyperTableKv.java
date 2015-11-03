@@ -38,6 +38,15 @@ public class HyperTableKv implements Kv {
 
     @Override
     public String getType() {
-        return null;
+        return HYPERTABLE.toString();
+    }
+
+    public static Runnable getLoader(long nOps, long bSize, long rStart) {
+        return new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        };
     }
 }
