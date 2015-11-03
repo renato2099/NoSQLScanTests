@@ -119,7 +119,7 @@ public class CassandraKv implements Kv {
         Properties props = Utils.loadProperties(CASSANDRA_PROPS);
         String cNode = props.getProperty("entry_node");
         String port = props.getProperty("port");
-        Log.info(cNode + port);
+        Log.info(String.format("[Load %s] Connected to %s:%s", CASSANDRA.toString(), cNode,port));
         this.connect(cNode, port);
         this.createKeySpace();
     }

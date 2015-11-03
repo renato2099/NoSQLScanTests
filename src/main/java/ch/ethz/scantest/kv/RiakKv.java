@@ -1,13 +1,23 @@
 package ch.ethz.scantest.kv;
 
 import ch.ethz.scantest.DataGenerator;
+import ch.ethz.scantest.Utils;
 import com.basho.riak.client.api.RiakClient;
 
 import com.basho.riak.client.api.commands.kv.ListKeys;
 import com.basho.riak.client.api.commands.kv.StoreValue;
+import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
+import com.basho.riak.client.api.commands.mapreduce.MapReduce;
+import com.basho.riak.client.core.RiakCluster;
+import com.basho.riak.client.core.RiakFuture;
+import com.basho.riak.client.core.RiakNode;
+import com.basho.riak.client.core.operations.MapReduceOperation;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
+import com.basho.riak.client.core.query.crdt.ops.MapOp;
+import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
@@ -15,8 +25,10 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import static ch.ethz.scantest.kv.Kv.kvStores.CASSANDRA;
 import static ch.ethz.scantest.kv.Kv.kvStores.RIAK;
 
 /**
@@ -25,6 +37,7 @@ import static ch.ethz.scantest.kv.Kv.kvStores.RIAK;
 public class RiakKv implements Kv {
     public static final String CONTAINER = "scanks";
     public static final String TABLE_NAME = "employees";
+    private static final String RIAK_PROPS = "riak.properties";
     private static RiakClient client;
     public static Logger Log = Logger.getLogger(RiakKv.class);
 
@@ -42,16 +55,18 @@ public class RiakKv implements Kv {
     public void initialize() {
         try {
             // Riak Client with supplied IP and Port
-            int port = 8087;
+            Properties props = Utils.loadProperties(RIAK_PROPS);
+            String rNode = props.getProperty("nodes");
+            String port = props.getProperty("port");
+            Log.info(String.format("[Load %s] Connected to %s:%s", CASSANDRA.toString(), rNode,port));
             List<String> ip = new ArrayList<>();
-            ip.add("127.0.0.1");
-            client = RiakClient.newClient(port, ip);
-
+            for (String node : rNode.split(","))
+                ip.add(node);
+            client = RiakClient.newClient(Integer.valueOf(port), ip);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
-
 
     public static Runnable getLoader(final long nOps, final long bSize, final long rStart) {
         return new Runnable() {
@@ -140,6 +155,42 @@ public class RiakKv implements Kv {
 
     @Override
     public long select(String schema, String table, double percent) {
+        Namespace ns = new Namespace("default", TABLE_NAME);
+        try {
+            String bName = ns.getBucketNameAsString();
+            String bType = ns.getBucketTypeAsString();
+
+            //TODO this needs to be redone
+            String query = "{\"inputs\":[[\"" + bName + "\",\"p1\",\"\",\"" + bType + "\"]," +
+                    "[\"" + bName + "\",\"p2\",\"\",\"" + bType + "\"]," +
+                    "[\"" + bName + "\",\"p3\",\"\",\"" + bType + "\"]]," +
+                    "\"query\":[{\"map\":{\"language\":\"javascript\",\"source\":\"" +
+                    "function(v) {var m = v.values[0].data.toLowerCase().match(/\\w*/g); var r = [];" +
+                    "for(var i in m) {if(m[i] != '') {var o = {};o[m[i]] = 1;r.push(o);}}return r;}" +
+                    "\"}},{\"reduce\":{\"language\":\"javascript\",\"source\":\"" +
+                    "function(v) {var r = {};for(var i in v) {for(var w in v[i]) {if(w in r) r[w] += v[i][w];" +
+                    "else r[w] = v[i][w];}}return [r];}\"}}]}";
+
+            MapReduceOperation mrOp =
+                    new MapReduceOperation.Builder(BinaryValue.unsafeCreate(query.getBytes()))
+                            .build();
+
+            RiakNode.Builder builder = new RiakNode.Builder()
+                    .withRemotePort(8087);
+            RiakCluster cluster = new RiakCluster.Builder(builder.build()).build();
+            cluster.start();
+            RiakFuture<MapReduceOperation.Response, BinaryValue> resp = cluster.execute(mrOp);
+            MapReduceOperation.Response response = resp.get();
+            System.out.println(response.getResults().entrySet().size());
+            mrOp.await();
+            System.out.println(mrOp.isSuccess());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 

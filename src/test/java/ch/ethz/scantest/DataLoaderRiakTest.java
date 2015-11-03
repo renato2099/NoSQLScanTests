@@ -28,8 +28,8 @@ public class DataLoaderRiakTest extends DataLoaderTest {
     @Test
     public void testPercentage() {
         double p = 0.5;
-        loadKv(HBASE, DEFAULT_OPS, DEFAULT_BATCH);
-        long actual = getPercentage(HBaseKv.CONTAINER, HBaseKv.TABLE_NAME, p);
-        Log.info(String.format("[Scan %s] Expected:%1.2f Found:%d", HBASE.toString(), DEFAULT_OPS*p, actual));
+        loadKv(RIAK, DEFAULT_OPS, DEFAULT_BATCH);
+        long actual = getPercentage(RiakKv.CONTAINER, RiakKv.TABLE_NAME, p);
+        Log.info(String.format("[Scan %s] Expected:%1.2f Found:%d", RIAK.toString(), DEFAULT_OPS*p, actual));
     }
 }

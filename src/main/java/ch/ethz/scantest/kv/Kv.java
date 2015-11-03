@@ -1,5 +1,7 @@
 package ch.ethz.scantest.kv;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * Created by renatomarroquin on 2015-11-01.
  */
