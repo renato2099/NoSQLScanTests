@@ -115,32 +115,16 @@ public class HyperTableKv implements Kv {
         List columns = new ArrayList();
         columns.add(table);
         ss.setColumns(columns);
-        ColumnPredicate cp = new ColumnPredicate();
-        cp.setColumn_qualifier("s");
-        ss.addToColumn_predicates(cp);
         long size = 0;
         try {
             StringBuilder sb = new StringBuilder();
-            sb.append("SELECT * from ").append(CONTAINER).append(" WHERE ");
-            sb.append(TABLE_NAME).append(":s = ").append(percent);
+            sb.append("SELECT * from ").append(CONTAINER).append(" WHERE value regexp ");
+            sb.append("\"^(?:[1-9]\\d*|0)?(?:\\.[0-").append((int) (percent * 10)).append("]\\d+)?$\"");
             HqlResult result = client.hql_exec(ns,  sb.toString(), false, true);
-            while (true) {
-                List<Cell> cells = client.scanner_get_cells(result.scanner);
-                if (cells.isEmpty())
-                    break;
+            while (!client.scanner_get_row_as_arrays(result.scanner).isEmpty())
                 size ++;
-                for (Cell cell : cells) {
-                    String value = null;
-                    if (cell.value != null)
-                        value = new String(cell.value.array(), cell.value.position(),
-                                cell.value.remaining(), "UTF-8");
-                    System.out.println(cell.key + " value=" + value);
-                }
-            }
             client.scanner_close(result.scanner);
         } catch (TException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return size;
@@ -215,7 +199,7 @@ public class HyperTableKv implements Kv {
         k.setColumn_qualifier("s");
         cell = new Cell();
         cell.setKey(k);
-        cell.setValue(Bytes.toBytes(dGen.genDouble()));
+        cell.setValue(Bytes.toBytes(String.valueOf(dGen.genDouble())));
         cells.add(cell);
 
         k = new Key();
