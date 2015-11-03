@@ -9,6 +9,7 @@ import org.hypertable.thrift.ThriftClient;
 import org.hypertable.thriftgen.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static ch.ethz.scantest.kv.Kv.kvStores.HYPERTABLE;
@@ -45,9 +46,9 @@ public class HyperTableKv implements Kv {
             port = props.getProperty("port");
 
             client = ThriftClient.create(hNode, Integer.valueOf(port));
-            if (!client.namespace_exists(CONTAINER))
-                client.namespace_create(CONTAINER);
-            ns = client.namespace_open(CONTAINER);
+            if (!client.namespace_exists(NS_LOC))
+                client.namespace_create(NS_LOC);
+            ns = client.namespace_open(NS_LOC);
 
             boolean if_exists = true;
             client.table_drop(ns, CONTAINER, if_exists);
@@ -58,7 +59,7 @@ public class HyperTableKv implements Kv {
             schema.setColumn_families(getColumnFamily());
 
             client.table_create(ns, CONTAINER, schema);
-            client.namespace_create(NS_LOC);
+//            client.namespace_create(NS_LOC);
 
             List<NamespaceListing> listing;
             listing = client.namespace_get_listing(ns);
@@ -73,36 +74,16 @@ public class HyperTableKv implements Kv {
 
     public Map getColumnFamily() {
         Map cfs = new HashMap();
-
         ColumnFamilySpec cf = new ColumnFamilySpec();
         cf.setName(TABLE_NAME);
         cfs.put(TABLE_NAME, cf);
-
-//        cf = new ColumnFamilySpec();
-//        cf.setName("last");
-//        cfs.put("last", cf);
-//
-//        cf = new ColumnFamilySpec();
-//        cf.setName("first");
-//        cfs.put("first", cf);
-//
-//        cf = new ColumnFamilySpec();
-//        cf.setName("salary");
-//        cfs.put("salary", cf);
-//
-//        cf = new ColumnFamilySpec();
-//        cf.setName("service_yrs");
-//        cfs.put("service_yrs", cf);
-//
-//        cf = new ColumnFamilySpec();
-//        cf.setName("country");
-//        cfs.put("country", cf);
         return cfs;
     }
 
     @Override
     public void destroy() {
         try {
+            //todo drop table/namespace
             client.namespace_close(ns);
         } catch (TException e) {
             e.printStackTrace();
@@ -111,12 +92,58 @@ public class HyperTableKv implements Kv {
 
     @Override
     public long selectAll(String schema, String table) {
-        return 0;
+        ScanSpec ss = new ScanSpec();
+        List columns = new ArrayList();
+        columns.add(table);
+        ss.setColumns(columns);
+        long size = 0;
+        try {
+            HqlResult result = client.hql_exec(ns, "SELECT * from " + CONTAINER, false, true);
+            while (!client.scanner_get_row_as_arrays(result.scanner).isEmpty())
+                size ++;
+            client.scanner_close(result.scanner);
+        } catch (TException e) {
+            e.printStackTrace();
+        }
+
+        return size;
     }
 
     @Override
     public long select(String schema, String table, double percent) {
-        return 0;
+        ScanSpec ss = new ScanSpec();
+        List columns = new ArrayList();
+        columns.add(table);
+        ss.setColumns(columns);
+        ColumnPredicate cp = new ColumnPredicate();
+        cp.setColumn_qualifier("s");
+        ss.addToColumn_predicates(cp);
+        long size = 0;
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("SELECT * from ").append(CONTAINER).append(" WHERE ");
+            sb.append(TABLE_NAME).append(":s = ").append(percent);
+            HqlResult result = client.hql_exec(ns,  sb.toString(), false, true);
+            while (true) {
+                List<Cell> cells = client.scanner_get_cells(result.scanner);
+                if (cells.isEmpty())
+                    break;
+                size ++;
+                for (Cell cell : cells) {
+                    String value = null;
+                    if (cell.value != null)
+                        value = new String(cell.value.array(), cell.value.position(),
+                                cell.value.remaining(), "UTF-8");
+                    System.out.println(cell.key + " value=" + value);
+                }
+            }
+            client.scanner_close(result.scanner);
+        } catch (TException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return size;
     }
 
     @Override
@@ -155,38 +182,56 @@ public class HyperTableKv implements Kv {
             key = new Key();
             key.setRow(String.valueOf(idStart));
             key.setColumn_family(TABLE_NAME);
-            client.set_cells(ns, TABLE_NAME, buildRecord(key, dGen));
+            client.set_cells(ns, CONTAINER, buildRecord(String.valueOf(idStart), dGen));
             idStart ++;
         }
         return cells;
     }
 
-    private static List buildRecord(Key k, DataGenerator dGen) {
+    private static List buildRecord(String idStart, DataGenerator dGen) {
 
         List cells = new ArrayList();
         Cell cell = new Cell();
+        Key k = new Key();
+        k.setRow(idStart);
+        k.setColumn_family(TABLE_NAME);
         k.setColumn_qualifier("l");
         cell.setKey(k);
         cell.setValue(Bytes.toBytes(dGen.genText(15)));
         cells.add(cell);
 
-        cell = new Cell();
+        k = new Key();
+        k.setRow(idStart);
+        k.setColumn_family(TABLE_NAME);
         k.setColumn_qualifier("f");
+        cell = new Cell();
         cell.setKey(k);
         cell.setValue(Bytes.toBytes(dGen.genText(15)));
         cells.add(cell);
 
+        k = new Key();
+        k.setRow(idStart);
+        k.setColumn_family(TABLE_NAME);
         k.setColumn_qualifier("s");
+        cell = new Cell();
         cell.setKey(k);
         cell.setValue(Bytes.toBytes(dGen.genDouble()));
         cells.add(cell);
 
+        k = new Key();
+        k.setRow(idStart);
+        k.setColumn_family(TABLE_NAME);
         k.setColumn_qualifier("sy");
+        cell = new Cell();
         cell.setKey(k);
         cell.setValue(Bytes.toBytes(dGen.genInt()));
         cells.add(cell);
 
+        k = new Key();
+        k.setRow(idStart);
+        k.setColumn_family(TABLE_NAME);
         k.setColumn_qualifier("c");
+        cell = new Cell();
         cell.setKey(k);
         cell.setValue(Bytes.toBytes(dGen.getCountry()));
         cells.add(cell);
