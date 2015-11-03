@@ -40,6 +40,8 @@ public class RiakKv implements Kv {
     private static final String RIAK_PROPS = "riak.properties";
     private static RiakClient client;
     public static Logger Log = Logger.getLogger(RiakKv.class);
+    private String rNodes;
+    private String port;
 
     @Override
     public String getTableName() {
@@ -56,11 +58,11 @@ public class RiakKv implements Kv {
         try {
             // Riak Client with supplied IP and Port
             Properties props = Utils.loadProperties(RIAK_PROPS);
-            String rNode = props.getProperty("nodes");
-            String port = props.getProperty("port");
-            Log.info(String.format("[Load %s] Connected to %s:%s", CASSANDRA.toString(), rNode,port));
+            rNodes = props.getProperty("nodes");
+            port = props.getProperty("port");
+            Log.info(String.format("[Load %s] Connected to %s:%s", CASSANDRA.toString(), rNodes,port));
             List<String> ip = new ArrayList<>();
-            for (String node : rNode.split(","))
+            for (String node : rNodes.split(","))
                 ip.add(node);
             client = RiakClient.newClient(Integer.valueOf(port), ip);
         } catch (UnknownHostException e) {
