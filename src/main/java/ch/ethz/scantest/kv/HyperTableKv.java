@@ -59,7 +59,6 @@ public class HyperTableKv implements Kv {
             schema.setColumn_families(getColumnFamily());
 
             client.table_create(ns, CONTAINER, schema);
-//            client.namespace_create(NS_LOC);
 
             List<NamespaceListing> listing;
             listing = client.namespace_get_listing(ns);

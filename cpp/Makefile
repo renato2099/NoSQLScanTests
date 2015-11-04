@@ -22,4 +22,4 @@ main: $(OBJECTS)
 	$(CXX) $(CFLAGS) -c $<
 
 clean:
-	rm -f *.o main *~
+	rm -f *.o main Util *~

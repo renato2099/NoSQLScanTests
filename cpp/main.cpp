@@ -62,12 +62,12 @@ const option::Descriptor usage[] =
 	{VERBOSE,  		0,	"v", 	"verbose",		Arg::None, 		"  --verbose \t \t -v \t \t Print information about the benchmark." },
 	{THREADS,   	0,	"t", 	"threads",		Arg::Numeric, 	"  --threads <num> \t \t -t <num>\t \t Number of threads." },
 	{OPERATIONS,	0,	"o",	"operations",	Arg::Numeric,	"  --operations <num> \t \t -o <num> \t \t Number of total operations."},
-	{TABLE,	0,	"tb",	"table",	Arg::Numeric,	"  --table <tableName> \t \t -tb <tableName> \t \t Table name."},
-	{CLUSTER,	0,	"c",	"cluster",	Arg::Numeric,	"  --cluster <clusterName> \t \t -c <clusterName> \t \t Table name."},
+	{TABLE,	0,	"tb",	"table",	Arg::Required,	"  --table <tableName> \t \t -tb <tableName> \t \t Table name."},
+	{CLUSTER,	0,	"c",	"cluster",	Arg::Required,	"  --cluster <clusterName> \t \t -c <clusterName> \t \t Table name."},
 	{0,0,0,0,0,0}
 };
 
-int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, bool &verbose)
+int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std::string &tableName, std::string &cluster, bool &verbose)
 {
 	// program options
 	// program options
@@ -99,8 +99,13 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, bool
 				// not possible, because handled further above and exits the program
 			case VERBOSE:
 				verbose = true;
-				// std::cout<<opt.arg<<std::endl;
 				//istringstream(opt.arg) >> std::boolalpha >> verbose;
+				break;
+			case TABLE:
+				tableName << opt.arg;
+				break;
+			case CLUSTER:
+				clusterName << opt.arg;
 				break;
 			case THREADS:
 				strValue << opt.arg;
@@ -118,7 +123,7 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, bool
 	return 0;
 }
 
-int check_parameters(int numThreads, int numOperations, bool verbose)
+int check_parameters(int numThreads, int numOperations, std::string tableName, std::string clusterName, bool verbose)
 {
 	if (numThreads < 1)
 	{
@@ -139,17 +144,17 @@ int main(int argc, char** argv)
 {
 	bool verbose = false;
 	int numThreads = DEFAULT_THREADS, numOperations = DEFAULT_OPS;
-	std::string tName = "employees";
-	std::string clName = "cluster";
+	std::string tableName = "employees";
+	std::string clusterName = "cluster";
 
-	if (!readCmdLine(argc, argv, numThreads, numOperations, verbose))
+	if (!readCmdLine(argc, argv, numThreads, numOperations, tableName, clusterName, verbose))
 	{
-		if (check_parameters(numThreads, numOperations, verbose)) {
+		if (check_parameters(numThreads, numOperations, tableName, clusterName, verbose)) {
 			exit(1);
 		}
 		Benchmark bench;
 		std::cout << "Loading database" << std::endl;
-		bench.load(numThreads, numOperations, tName, clName, verbose);
+		bench.load(numThreads, numOperations, tableName, clusterName, verbose);
 		std::cout << "Scanning database" << std::endl;
 		// bench.scan();
 	}
