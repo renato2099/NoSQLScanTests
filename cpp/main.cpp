@@ -53,7 +53,7 @@ struct Arg: public option::Arg
   }
 };
 
-enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS };
+enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, TABLE, CLUSTER };
 const option::Descriptor usage[] =
 {
 	{UNKNOWN,		0,	"", 	"",		 		Arg::None, 		"USAGE: example [options]\n\n"
@@ -62,6 +62,8 @@ const option::Descriptor usage[] =
 	{VERBOSE,  		0,	"v", 	"verbose",		Arg::None, 		"  --verbose \t \t -v \t \t Print information about the benchmark." },
 	{THREADS,   	0,	"t", 	"threads",		Arg::Numeric, 	"  --threads <num> \t \t -t <num>\t \t Number of threads." },
 	{OPERATIONS,	0,	"o",	"operations",	Arg::Numeric,	"  --operations <num> \t \t -o <num> \t \t Number of total operations."},
+	{TABLE,	0,	"tb",	"table",	Arg::Numeric,	"  --table <tableName> \t \t -tb <tableName> \t \t Table name."},
+	{CLUSTER,	0,	"c",	"cluster",	Arg::Numeric,	"  --cluster <clusterName> \t \t -c <clusterName> \t \t Table name."},
 	{0,0,0,0,0,0}
 };
 
