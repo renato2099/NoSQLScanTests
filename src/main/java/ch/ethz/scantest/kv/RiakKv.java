@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
@@ -167,11 +168,14 @@ public class RiakKv implements Kv {
                     "[\"" + bName + "\",\"p2\",\"\",\"" + bType + "\"]," +
                     "[\"" + bName + "\",\"p3\",\"\",\"" + bType + "\"]]," +
                     "\"query\":[{\"map\":{\"language\":\"javascript\",\"source\":\"" +
+//                    "function(v) {return v;}" +
                     "function(v) {var m = v.values[0].data.toLowerCase().match(/\\w*/g); var r = [];" +
                     "for(var i in m) {if(m[i] != '') {var o = {};o[m[i]] = 1;r.push(o);}}return r;}" +
-                    "\"}},{\"reduce\":{\"language\":\"javascript\",\"source\":\"" +
+                    "\"}},"
+                    + "{\"reduce\":{\"language\":\"javascript\",\"source\":\"" +
                     "function(v) {var r = {};for(var i in v) {for(var w in v[i]) {if(w in r) r[w] += v[i][w];" +
-                    "else r[w] = v[i][w];}}return [r];}\"}}]}";
+                    "else r[w] = v[i][w];}}return [r];}\"}}]}"
+                    ;
 
             MapReduceOperation mrOp =
                     new MapReduceOperation.Builder(BinaryValue.unsafeCreate(query.getBytes()))
@@ -183,6 +187,9 @@ public class RiakKv implements Kv {
             cluster.start();
             RiakFuture<MapReduceOperation.Response, BinaryValue> resp = cluster.execute(mrOp);
             MapReduceOperation.Response response = resp.get();
+            for (Map.Entry ent :response.getResults().entrySet()) {
+                System.out.print(ent.getKey() + ":" + ent.getValue());
+            }
             System.out.println(response.getResults().entrySet().size());
             mrOp.await();
             System.out.println(mrOp.isSuccess());
