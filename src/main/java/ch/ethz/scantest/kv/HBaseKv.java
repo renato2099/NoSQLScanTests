@@ -63,9 +63,9 @@ public class HBaseKv implements Kv {
         for (int j = 1; j <= bSize; j++) {
             Put put = new Put(Bytes.toBytes(idStart));
             // last
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("l"), Bytes.toBytes(dGen.genText(15)));
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("l"), Bytes.toBytes(dGen.genText(LAST_NAME)));
             // first
-            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("f"), Bytes.toBytes(dGen.genText(15)));
+            put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("f"), Bytes.toBytes(dGen.genText(FIRST_NAME)));
             // salary
             put.addColumn(Bytes.toBytes(TABLE_NAME), Bytes.toBytes("s"), Bytes.toBytes(dGen.genDouble()));
             // service_yrs

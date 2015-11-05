@@ -13,6 +13,8 @@ public interface Kv {
             this.val = v;
         }
     }
+    static int FIRST_NAME = 500;
+    static int LAST_NAME = 515;
 
     /**
      * Gets table/column family name

@@ -180,7 +180,7 @@ public class HyperTableKv implements Kv {
         k.setColumn_family(TABLE_NAME);
         k.setColumn_qualifier("l");
         cell.setKey(k);
-        cell.setValue(Bytes.toBytes(dGen.genText(15)));
+        cell.setValue(Bytes.toBytes(dGen.genText(LAST_NAME)));
         cells.add(cell);
 
         k = new Key();
@@ -189,7 +189,7 @@ public class HyperTableKv implements Kv {
         k.setColumn_qualifier("f");
         cell = new Cell();
         cell.setKey(k);
-        cell.setValue(Bytes.toBytes(dGen.genText(15)));
+        cell.setValue(Bytes.toBytes(dGen.genText(FIRST_NAME)));
         cells.add(cell);
 
         k = new Key();

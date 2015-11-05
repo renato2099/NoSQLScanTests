@@ -6,7 +6,6 @@ import ch.ethz.scantest.DataGenerator;
 import ch.ethz.scantest.Utils;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.Batch;
-import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import org.apache.log4j.Logger;
@@ -72,7 +71,7 @@ public class CassandraKv implements Kv {
         for (int j = 1; j <= bSize; j++) {
             RegularStatement insert = QueryBuilder.insertInto(TABLE_NAME).values(
                     new String[] { "id", "last", "first", "salary", "service_yrs", "country" },
-                    new Object[] { idStart, dGen.genText(15), dGen.genText(20), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
+                    new Object[] { idStart, dGen.genText(LAST_NAME), dGen.genText(FIRST_NAME), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
             insert.setConsistencyLevel(ConsistencyLevel.QUORUM);
             sb.append(" ").append(idStart);
