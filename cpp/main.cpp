@@ -53,7 +53,7 @@ struct Arg: public option::Arg
   }
 };
 
-enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, TABLE, CLUSTER };
+enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, TABLE, CLUSTER, LOAD, PERCENTAGE };
 const option::Descriptor usage[] =
 {
 	{UNKNOWN,		0,	"", 	"",		 		Arg::None, 		"USAGE: example [options]\n\n"
@@ -62,12 +62,14 @@ const option::Descriptor usage[] =
 	{VERBOSE,  		0,	"v", 	"verbose",		Arg::None, 		"  --verbose \t \t -v \t \t Print information about the benchmark." },
 	{THREADS,   	0,	"t", 	"threads",		Arg::Numeric, 	"  --threads <num> \t \t -t <num>\t \t Number of threads." },
 	{OPERATIONS,	0,	"o",	"operations",	Arg::Numeric,	"  --operations <num> \t \t -o <num> \t \t Number of total operations."},
-	{TABLE,	0,	"tb",	"table",	Arg::Required,	"  --table <tableName> \t \t -tb <tableName> \t \t Table name."},
-	{CLUSTER,	0,	"c",	"cluster",	Arg::Required,	"  --cluster <clusterName> \t \t -c <clusterName> \t \t Table name."},
+	{TABLE,	0,	"r",	"relation",	Arg::Required,	"  --relation <relationName> \t \t -r <relationName> \t \t Relation name."},
+	{LOAD,	0,	"l",	"load",	Arg::None,	"  --load <load> \t \t -l <load> \t \t To load data into table."},
+	{PERCENTAGE,	0,	"p",	"percentage",	Arg::Numeric,	"  --percentage <percentage> \t \t -p <percentage> \t \t Percentage in terms of salary."},
+	{CLUSTER,	0,	"c",	"cluster",	Arg::Required,	"  --cluster <clusterName> \t \t -c <clusterName> \t \t Cluster name."},
 	{0,0,0,0,0,0}
 };
 
-int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std::string &tableName, std::string &cluster, bool &verbose)
+int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std::string &tableName, std::string &clusterName, double &percentage, bool &load, bool &verbose)
 {
 	// program options
 	// program options
@@ -97,15 +99,22 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std:
 			// UNKNOWN, HELP, BENCHMARK, POP, RM, THRDS, INSERTS, FIXED, VERBOSE, LOCK_FREE, CNC_TBB
 			case HELP:
 				// not possible, because handled further above and exits the program
+			case LOAD:
+				load = true;
+				break;
+			case PERCENTAGE:
+				char *endptr;
+				percentage = std::strtod(opt.arg, &endptr);
+				break;
 			case VERBOSE:
 				verbose = true;
 				//istringstream(opt.arg) >> std::boolalpha >> verbose;
 				break;
 			case TABLE:
-				tableName << opt.arg;
+				tableName = opt.arg;
 				break;
 			case CLUSTER:
-				clusterName << opt.arg;
+				clusterName = opt.arg;
 				break;
 			case THREADS:
 				strValue << opt.arg;
@@ -123,8 +132,19 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std:
 	return 0;
 }
 
-int check_parameters(int numThreads, int numOperations, std::string tableName, std::string clusterName, bool verbose)
+int check_parameters(int numThreads, int numOperations, std::string tableName, std::string clusterName, double percentage, bool load, bool verbose)
 {
+	//todo some validation over percentage and load
+	if (tableName.empty()) 
+	{
+		cerr << "A tableName must be specified." << endl;
+		return 1;
+	}
+	if (clusterName.empty())
+	{
+		cerr << "A clusterName must be specified." << endl;
+		return 1;
+	}
 	if (numThreads < 1)
 	{
 		cerr << "The number of threads has be a positive integer number." << endl;
@@ -142,22 +162,25 @@ int check_parameters(int numThreads, int numOperations, std::string tableName, s
 
 int main(int argc, char** argv) 
 {
-	bool verbose = false;
+	bool verbose = false, load = false;
 	int numThreads = DEFAULT_THREADS, numOperations = DEFAULT_OPS;
 	std::string tableName = "employees";
 	std::string clusterName = "cluster";
+	double percentage = 0.5;
 
-	if (!readCmdLine(argc, argv, numThreads, numOperations, tableName, clusterName, verbose))
+	if (!readCmdLine(argc, argv, numThreads, numOperations, tableName, clusterName, percentage, load, verbose))
 	{
-		if (check_parameters(numThreads, numOperations, tableName, clusterName, verbose)) {
+		if (check_parameters(numThreads, numOperations, tableName, clusterName, percentage, load, verbose)) {
 			exit(1);
 		}
 		Benchmark bench;
-		std::cout << "Loading database" << std::endl;
-		bench.load(numThreads, numOperations, tableName, clusterName, verbose);
+		if (!load) 
+		{
+			std::cout << "Loading database" << std::endl;
+			bench.load(numThreads, numOperations, tableName, clusterName, verbose);
+		}
 		std::cout << "Scanning database" << std::endl;
-		// bench.scan();
+		bench.scan(percentage, tableName, clusterName);
 	}
-	std::cout << "verbose" << std::endl;
 	return 0;
 }
