@@ -53,7 +53,7 @@ struct Arg: public option::Arg
   }
 };
 
-enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, TABLE, CLUSTER, LOAD, PERCENTAGE };
+enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, LOCATOR, CLUSTER, INSERT, PERCENTAGE };
 const option::Descriptor usage[] =
 {
 	{UNKNOWN,		0,	"", 	"",		 		Arg::None, 		"USAGE: example [options]\n\n"
@@ -62,8 +62,8 @@ const option::Descriptor usage[] =
 	{VERBOSE,  		0,	"v", 	"verbose",		Arg::None, 		"  --verbose \t \t -v \t \t Print information about the benchmark." },
 	{THREADS,   	0,	"t", 	"threads",		Arg::Numeric, 	"  --threads <num> \t \t -t <num>\t \t Number of threads." },
 	{OPERATIONS,	0,	"o",	"operations",	Arg::Numeric,	"  --operations <num> \t \t -o <num> \t \t Number of total operations."},
-	{TABLE,	0,	"r",	"relation",	Arg::Required,	"  --relation <relationName> \t \t -r <relationName> \t \t Relation name."},
-	{LOAD,	0,	"l",	"load",	Arg::None,	"  --load <load> \t \t -l <load> \t \t To load data into table."},
+	{LOCATOR,	0,	"l",	"locator",	Arg::Required,	"  --locator <locator> \t \t -l <locator> \t \t Locator name."},
+	{INSERT,	0,	"i",	"insert",	Arg::None,	"  --insert <insert> \t \t -i <insert> \t \t To insert data into table."},
 	{PERCENTAGE,	0,	"p",	"percentage",	Arg::Numeric,	"  --percentage <percentage> \t \t -p <percentage> \t \t Percentage in terms of salary."},
 	{CLUSTER,	0,	"c",	"cluster",	Arg::Required,	"  --cluster <clusterName> \t \t -c <clusterName> \t \t Cluster name."},
 	{0,0,0,0,0,0}
@@ -99,7 +99,7 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std:
 			// UNKNOWN, HELP, BENCHMARK, POP, RM, THRDS, INSERTS, FIXED, VERBOSE, LOCK_FREE, CNC_TBB
 			case HELP:
 				// not possible, because handled further above and exits the program
-			case LOAD:
+			case INSERT:
 				load = true;
 				break;
 			case PERCENTAGE:
@@ -110,7 +110,7 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std:
 				verbose = true;
 				//istringstream(opt.arg) >> std::boolalpha >> verbose;
 				break;
-			case TABLE:
+			case LOCATOR:
 				tableName = opt.arg;
 				break;
 			case CLUSTER:
@@ -132,12 +132,12 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std:
 	return 0;
 }
 
-int check_parameters(int numThreads, int numOperations, std::string tableName, std::string clusterName, double percentage, bool load, bool verbose)
+int check_parameters(int numThreads, int numOperations, std::string locator, std::string clusterName, double percentage, bool load, bool verbose)
 {
 	//todo some validation over percentage and load
-	if (tableName.empty()) 
+	if (locator.empty()) 
 	{
-		cerr << "A tableName must be specified." << endl;
+		cerr << "A locator must be specified." << endl;
 		return 1;
 	}
 	if (clusterName.empty())
@@ -164,23 +164,23 @@ int main(int argc, char** argv)
 {
 	bool verbose = false, load = false;
 	int numThreads = DEFAULT_THREADS, numOperations = DEFAULT_OPS;
-	std::string tableName = "employees";
+	std::string locator = "";
 	std::string clusterName = "cluster";
 	double percentage = 0.5;
 
-	if (!readCmdLine(argc, argv, numThreads, numOperations, tableName, clusterName, percentage, load, verbose))
+	if (!readCmdLine(argc, argv, numThreads, numOperations, locator, clusterName, percentage, load, verbose))
 	{
-		if (check_parameters(numThreads, numOperations, tableName, clusterName, percentage, load, verbose)) {
+		if (check_parameters(numThreads, numOperations, locator, clusterName, percentage, load, verbose)) {
 			exit(1);
 		}
 		Benchmark bench;
 		if (!load) 
 		{
 			std::cout << "Loading database" << std::endl;
-			bench.load(numThreads, numOperations, tableName, clusterName, verbose);
+			bench.load(numThreads, numOperations, locator, clusterName, verbose);
 		}
 		std::cout << "Scanning database" << std::endl;
-		bench.scan(percentage, tableName, clusterName);
+		bench.scan(percentage, locator, clusterName);
 	}
 	return 0;
 }
