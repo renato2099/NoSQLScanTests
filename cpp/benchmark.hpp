@@ -43,12 +43,19 @@ const std::string tName = "employees";
 	try {
 		tableId = client.getTableId(tName.c_str());
 		Buffer objects, state;
-		uint64_t tableFirstHash;
-		client.enumerateTable(tableId, false, tableFirstHash, state, objects);
-		//while (tableFirstHash != 0) {
-		//	client.enumerateTable(tableId, false, tableFirstHash, state, objects);
-			// do something clever with the data
-		//}
+		uint64_t currentTablet = 0ul;
+		size_t receivedSize = 0ul;
+		auto beginTime = std::chrono::system_clock::now();
+		do {
+			currentTablet = client.enumerateTable(tableId, false, currentTablet, state, objects);
+			receivedSize += objects.size();
+#ifndef NDEBUG
+			std::cout << "Got " << objects.size() << " in " << objects.getNumberChunks() << " Chunks" << std::endl;
+#endif
+		} while (currentTablet);
+		auto duration = std::chrono::system_clock::now() - beginTime;
+		std::cout << "Recieved " << receivedSize << " bytes\n";
+		std::cout << "Scan took " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms\n";
 	} catch (ClientException &e) {
 		std::cout << "[Scan] Something went wrong while trying to scan." << std::endl;
 	}
@@ -126,9 +133,10 @@ const std::string tName = "employees";
    		std::stringstream val;
    		float salary = random.randomWithin(0.0, 1.0);
    		if (salary < 0) salary *=-1;
-		val << random.astring(15, 15) << random.astring(20, 20) <<  salary  << random.random(1, 100) << random.astring(5,5);
-		const char * vv = val.str().c_str();
-   		client.write(tableId, (const void*)&idRange, sizeof(idRange), vv, downCast<uint32_t>(strlen(vv)+1));
+		val << random.astring(500, 500) << random.astring(515, 515) <<  salary  << random.random(1, 100) << random.astring(5,5);
+		std::string value = val.str();
+		const char * vv = value.c_str();
+   		client.write(tableId, (const void*)&idRange, sizeof(idRange), vv, uint32_t(value.size()));
    		//client.write(tableId, vali.c_str(), downCast<uint16_t>(idRange), val.c_str(), downCast<uint32_t>(strlen(val.c_str())+1));
    		if (verbose)
    			if ((cnt*100 % nInserts)/10 == 0)
