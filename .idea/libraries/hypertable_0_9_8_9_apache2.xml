@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="hypertable-0.9.8.9-apache2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/hypertable-0.9.8.9-apache2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
