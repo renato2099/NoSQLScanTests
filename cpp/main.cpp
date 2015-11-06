@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 			exit(1);
 		}
 		Benchmark bench;
-		if (!load) 
+		if (load) 
 		{
 			std::cout << "Loading database" << std::endl;
 			bench.load(numThreads, numOperations, locator, clusterName, verbose);

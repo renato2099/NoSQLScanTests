@@ -17,11 +17,15 @@
 #include "RamCloud.h"
 #include "Tub.h"
 #include "IndexLookup.h"
+#include "TableEnumerator.h"
 
 using namespace RAMCloud;
 
 const int session_timeout = 100000;
 const std::string tName = "employees";
+const int ln_sz = 500;
+const int fn_sz = 515;
+const int cn_sz = 5;
 
    class Benchmark
    {
@@ -43,19 +47,22 @@ const std::string tName = "employees";
 	try {
 		tableId = client.getTableId(tName.c_str());
 		Buffer objects, state;
-		uint64_t currentTablet = 0ul;
 		size_t receivedSize = 0ul;
+		TableEnumerator tEnum(client, tableId, false);
 		auto beginTime = std::chrono::system_clock::now();
-		do {
-			currentTablet = client.enumerateTable(tableId, false, currentTablet, state, objects);
-			receivedSize += objects.size();
+		while (tEnum.hasNext()) {
+			uint32_t size;
+			const void* objs = 0;
+			tEnum.next(&size, &objs);
+			//currentTablet = client.enumerateTable(tableId, false, currentTablet, state, objects);
+			receivedSize += size;
 #ifndef NDEBUG
-			std::cout << "Got " << objects.size() << " in " << objects.getNumberChunks() << " Chunks" << std::endl;
+			//std::cout << "Got " << objects.size() << " in " << objects.getNumberChunks() << " Chunks" << std::endl;
 #endif
-		} while (currentTablet);
+		} //while (currentTablet);
 		auto duration = std::chrono::system_clock::now() - beginTime;
-		std::cout << "Recieved " << receivedSize << " bytes\n";
-		std::cout << "Scan took " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms\n";
+		std::cout << "[Scan] Received " << receivedSize << " bytes\n";
+		std::cout << "[Scan] Elapsed " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms\n";
 	} catch (ClientException &e) {
 		std::cout << "[Scan] Something went wrong while trying to scan." << std::endl;
 	}
@@ -125,7 +132,7 @@ const std::string tName = "employees";
    	tpcc::Random_t random;
 	std::string table = "employees";
    	Context context(false);
-   	context.transportManager->setSessionTimeout(100000);
+   	context.transportManager->setSessionTimeout(session_timeout);
    	RamCloud client(&context, locator.c_str(), clName.c_str());
 
    	while(cnt < nInserts) {
@@ -133,7 +140,7 @@ const std::string tName = "employees";
    		std::stringstream val;
    		float salary = random.randomWithin(0.0, 1.0);
    		if (salary < 0) salary *=-1;
-		val << random.astring(500, 500) << random.astring(515, 515) <<  salary  << random.random(1, 100) << random.astring(5,5);
+		val << random.astring(ln_sz, ln_sz) << random.astring(fn_sz, fn_sz) <<  salary  << random.random(1, 100) << random.astring(cn_sz, cn_sz);
 		std::string value = val.str();
 		const char * vv = value.c_str();
    		client.write(tableId, (const void*)&idRange, sizeof(idRange), vv, uint32_t(value.size()));
