@@ -143,7 +143,7 @@ public class CassandraKv implements Kv {
         sb.append("last varchar,").append("first varchar,");
         sb.append("salary double,").append("service_yrs int,");
         sb.append("country varchar");
-        sb.append(",").append("PRIMARY KEY (id, salary)");
+        sb.append(",").append("PRIMARY KEY ((id), salary)");
         sb.append(");");
 
         try {
