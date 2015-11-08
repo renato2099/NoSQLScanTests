@@ -53,13 +53,14 @@ struct Arg: public option::Arg
   }
 };
 
-enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, LOCATOR, CLUSTER, INSERT, PERCENTAGE };
+enum  optionIndex { UNKNOWN, HELP, VERBOSE, THREADS, OPERATIONS, LOCATOR, CLUSTER, INSERT, PERCENTAGE, IDX };
 const option::Descriptor usage[] =
 {
 	{UNKNOWN,		0,	"", 	"",		 		Arg::None, 		"USAGE: example [options]\n\n"
 																"Options:" },
 	{HELP,    		0,	"h", 	"help",			Arg::None, 		"  --help \t \t -h \t \t Print usage and exit." },
 	{VERBOSE,  		0,	"v", 	"verbose",		Arg::None, 		"  --verbose \t \t -v \t \t Print information about the benchmark." },
+	{IDX,  		0,	"x", 	"index",		Arg::None, 		"  --index \t \t -x \t \t Perform an index scan." },
 	{THREADS,   	0,	"t", 	"threads",		Arg::Numeric, 	"  --threads <num> \t \t -t <num>\t \t Number of threads." },
 	{OPERATIONS,	0,	"o",	"operations",	Arg::Numeric,	"  --operations <num> \t \t -o <num> \t \t Number of total operations."},
 	{LOCATOR,	0,	"l",	"locator",	Arg::Required,	"  --locator <locator> \t \t -l <locator> \t \t Locator name."},
@@ -69,7 +70,7 @@ const option::Descriptor usage[] =
 	{0,0,0,0,0,0}
 };
 
-int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std::string &tableName, std::string &clusterName, double &percentage, bool &load, bool &verbose)
+int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std::string &tableName, std::string &clusterName, double &percentage, bool &load, bool &idx, bool &verbose)
 {
 	// program options
 	// program options
@@ -99,6 +100,9 @@ int readCmdLine(int argc, char** argv, int &numThreads, int &numOperations, std:
 			// UNKNOWN, HELP, BENCHMARK, POP, RM, THRDS, INSERTS, FIXED, VERBOSE, LOCK_FREE, CNC_TBB
 			case HELP:
 				// not possible, because handled further above and exits the program
+			case IDX:
+				idx = true;
+				break;
 			case INSERT:
 				load = true;
 				break;
@@ -162,23 +166,27 @@ int check_parameters(int numThreads, int numOperations, std::string locator, std
 
 int main(int argc, char** argv) 
 {
-	bool verbose = false, load = false;
+	bool verbose = false, load = false, idx = false;
 	int numThreads = DEFAULT_THREADS, numOperations = DEFAULT_OPS;
 	std::string locator = "";
 	std::string clusterName = "cluster";
 	double percentage = 0.5;
 
-	if (!readCmdLine(argc, argv, numThreads, numOperations, locator, clusterName, percentage, load, verbose))
+	if (!readCmdLine(argc, argv, numThreads, numOperations, locator, clusterName, percentage, load, idx, verbose))
 	{
 		if (check_parameters(numThreads, numOperations, locator, clusterName, percentage, load, verbose)) {
 			exit(1);
 		}
 		Benchmark bench;
-		if (!load) 
+		if (load) 
 		{
 			std::cout << "Loading database" << std::endl;
 			bench.load(numThreads, numOperations, locator, clusterName, verbose);
-		}
+		} 
+		if (idx) {
+			std::cout << "Index scan " << std::endl;
+			bench.idxScan(locator, clusterName);
+		} 
 		std::cout << "Scanning database" << std::endl;
 		bench.scan(percentage, locator, clusterName);
 	}
