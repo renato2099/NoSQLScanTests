@@ -9,7 +9,7 @@ import org.junit.After;
  */
 public class DataLoaderTest {
     public static final long DEFAULT_BATCH = 10;
-    public static final long DEFAULT_OPS = 10;
+    public static final long DEFAULT_OPS = 120000000;
     public static Kv kv;
     public static Logger Log = Logger.getLogger(DataLoaderTest.class);
 
