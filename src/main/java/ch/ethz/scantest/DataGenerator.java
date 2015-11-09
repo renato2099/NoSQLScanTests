@@ -1,5 +1,7 @@
 package ch.ethz.scantest;
 
+import org.apache.hadoop.hbase.util.Strings;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -7,6 +9,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class DataGenerator {
     private static final char[] symbols;
+    private static final String fiveStr = "12345";
+    private static final String tenStr = "1234567890";
 
     static {
         StringBuilder tmp = new StringBuilder();
@@ -23,6 +27,19 @@ public class DataGenerator {
 
     public DataGenerator() {
         this.random = ThreadLocalRandom.current();
+    }
+
+    public String genFixedText(int size) {
+        int nTens = size / 10;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < nTens; i ++)
+            sb.append(tenStr);
+        if (nTens*10 != size)  {
+            int nFives = (size-nTens*10)/5;
+            for (int i = 0; i < nFives; i ++)
+                sb.append(fiveStr);
+        }
+        return sb.toString();
     }
 
     public String genText(int size) {
