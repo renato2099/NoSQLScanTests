@@ -56,7 +56,7 @@ public class CassandraKv implements Kv {
                     // commit batch
                     session.execute(batch);
                     idStart += bSize;
-                    if (idStart % 1000000 == 0)
+                    if (idStart % 1000000 == 1)
                         Log.info(String.format("[Load %s] Inserted %d tuples.", CASSANDRA.toString(), idStart));
                 }
 
