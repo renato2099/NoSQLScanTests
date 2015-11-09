@@ -75,7 +75,7 @@ public class CassandraKv implements Kv {
         for (int j = 1; j <= bSize; j++) {
             RegularStatement insert = QueryBuilder.insertInto(TABLE_NAME).values(
                     new String[] { "id", "last", "first", "salary", "service_yrs", "country" },
-                    new Object[] { idStart, dGen.genText(LAST_NAME), dGen.genText(FIRST_NAME), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
+                    new Object[] { idStart, dGen.genFixedText(LAST_NAME), dGen.genFixedText(FIRST_NAME), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
             insert.setConsistencyLevel(ConsistencyLevel.ANY);
             sb.append(" ").append(idStart);
@@ -133,9 +133,11 @@ public class CassandraKv implements Kv {
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE KEYSPACE ").append(CONTAINER).append(" WITH replication ");
         sb.append("= {'class':'SimpleStrategy', 'replication_factor':");
-        sb.append(REPL_FACTOR).append("};");
+        sb.append(REPL_FACTOR).append("}");
+        sb.append("AND DURABLE_WRITES = false").append(";");
         try {
             session.execute(sb.toString());
+            Log.warn(String.format("[LoadOp %s] KeySpace created!", CASSANDRA.toString()));
         } catch (com.datastax.driver.core.exceptions.AlreadyExistsException ex) {
             Log.warn("[LoadOp] Keyspace already exists!");
         }
@@ -152,8 +154,9 @@ public class CassandraKv implements Kv {
 
         try {
             session.execute(sb.toString());
+            Log.warn(String.format("[LoadOp %s] Table created!", CASSANDRA.toString()));
         } catch (com.datastax.driver.core.exceptions.AlreadyExistsException ex) {
-            Log.warn("[LoadOp] Table already exists!");
+            Log.warn(String.format("[LoadOp %s] Table already exists!", CASSANDRA.toString()));
         }
     }
 
