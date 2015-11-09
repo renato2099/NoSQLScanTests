@@ -48,17 +48,21 @@ public class CassandraKv implements Kv {
                 long nBatch = nOps/bSize;
                 Batch batch;
                 long idStart = rStart;
+                Log.info(String.format("[Load %s] Range %d tuples.", CASSANDRA.toString(), rStart));
                 for (int i = 1; i <= nBatch; i++) {
                     // generate statement of size bSize
                     batch = getBatch(bSize, idStart);
                     // commit batch
-                    session.execute(batch);
+//                    session.execute(batch);
                     idStart += bSize;
+                    if (idStart % 1000000 == 0)
+                        Log.info(String.format("[Load %s] Inserted %d tuples.", CASSANDRA.toString(), idStart));
                 }
+
                 // execute remaining
                 if (nOps - (nBatch*bSize) > 0) {
                     batch = getBatch(nOps - (nBatch*bSize), idStart);
-                    session.execute(batch);
+//                    session.execute(batch);
                 }
             }
         };
@@ -73,7 +77,7 @@ public class CassandraKv implements Kv {
                     new String[] { "id", "last", "first", "salary", "service_yrs", "country" },
                     new Object[] { idStart, dGen.genText(LAST_NAME), dGen.genText(FIRST_NAME), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
-            insert.setConsistencyLevel(ConsistencyLevel.QUORUM);
+            insert.setConsistencyLevel(ConsistencyLevel.ANY);
             sb.append(" ").append(idStart);
             idStart++;
             batch.add(insert);

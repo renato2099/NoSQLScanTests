@@ -9,7 +9,8 @@ import org.junit.After;
  */
 public class DataLoaderTest {
     public static final long DEFAULT_BATCH = 10;
-    public static final long DEFAULT_OPS = 10;
+    public static final long DEFAULT_OPS = 120000000;
+    public static final int DEFAULT_NTHREADS = 12;
     public static Kv kv;
     public static Logger Log = Logger.getLogger(DataLoaderTest.class);
 
@@ -30,12 +31,11 @@ public class DataLoaderTest {
     }
 
     public void loadKv(Kv.kvStores kvType, long nOps, long bSize) {
-        DataLoader dl = new DataLoader(1);
+        DataLoader dl = new DataLoader(DEFAULT_NTHREADS);
         long startTime = System.nanoTime();
         dl.load(nOps, kvType, bSize);
         long endTime = System.nanoTime();
         Log.info(String.format("[Load %s] Elapsed:%d", kvType.toString(), (endTime - startTime) / 1000));
-
     }
 
     @After

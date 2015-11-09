@@ -18,7 +18,7 @@ import static ch.ethz.scantest.kv.Kv.*;
 public class DataLoader {
 
     private ExecutorService executors;
-    public static int DEFAULT_NTHREADS = 4;
+    public static int DEFAULT_NTHREADS = 12;
     private int nThreads;
 
     public DataLoader() {
