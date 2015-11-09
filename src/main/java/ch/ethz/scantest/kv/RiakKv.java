@@ -6,18 +6,13 @@ import com.basho.riak.client.api.RiakClient;
 
 import com.basho.riak.client.api.commands.kv.ListKeys;
 import com.basho.riak.client.api.commands.kv.StoreValue;
-import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
-import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.RiakCluster;
 import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.RiakNode;
 import com.basho.riak.client.core.operations.MapReduceOperation;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.basho.riak.client.core.query.crdt.ops.MapOp;
-import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
@@ -116,7 +111,7 @@ public class RiakKv implements Kv {
         try {
             for (int j = 1; j <= bSize; j++) {
                 Location loc = new Location(ns, BinaryValue.create(Bytes.toBytes(idStart)));
-                Employee obj = new Employee(dGen.genText(15), dGen.genText(15),
+                Employee obj = new Employee(dGen.genText(FIRST_NAME), dGen.genText(LAST_NAME),
                         dGen.genDouble(), dGen.genInt(), dGen.getCountry());
                 StoreValue storeWithProps = new StoreValue.Builder(obj)
                         .withLocation(loc).build();

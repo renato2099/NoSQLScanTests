@@ -1,6 +1,5 @@
 package ch.ethz.scantest;
 
-import ch.ethz.scantest.kv.HBaseKv;
 import ch.ethz.scantest.kv.RiakKv;
 import org.junit.Before;
 import org.junit.Test;
