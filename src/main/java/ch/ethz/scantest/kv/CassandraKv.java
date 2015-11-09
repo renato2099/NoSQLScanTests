@@ -53,7 +53,7 @@ public class CassandraKv implements Kv {
                     // generate statement of size bSize
                     batch = getBatch(bSize, idStart);
                     // commit batch
-//                    session.execute(batch);
+                    session.execute(batch);
                     idStart += bSize;
                     if (idStart % 1000000 == 0)
                         Log.info(String.format("[Load %s] Inserted %d tuples.", CASSANDRA.toString(), idStart));
@@ -62,7 +62,7 @@ public class CassandraKv implements Kv {
                 // execute remaining
                 if (nOps - (nBatch*bSize) > 0) {
                     batch = getBatch(nOps - (nBatch*bSize), idStart);
-//                    session.execute(batch);
+                    session.execute(batch);
                 }
             }
         };
