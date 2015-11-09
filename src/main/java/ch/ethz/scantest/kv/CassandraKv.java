@@ -18,7 +18,8 @@ import java.util.Properties;
  */
 public class CassandraKv implements Kv {
 
-    private static final int HIGHER_TIMEOUT = 10000;
+    // read timeout 60 minutes
+    private static final int HIGHER_TIMEOUT = 3600000;
     private static final String CASSANDRA_PROPS = "cassandra.properties";
     public static final String CONTAINER = "scanks";
     private static final String REPL_FACTOR = "1";
@@ -89,6 +90,7 @@ public class CassandraKv implements Kv {
     public long selectAll(String keyspace, String table) {
         Session session = cluster.connect();
         Select query = QueryBuilder.select().all().from(CONTAINER, TABLE_NAME);
+        Log.info(String.format("[ScanOp %s] Scanning %s.%s", CASSANDRA.toString(), CONTAINER, TABLE_NAME));
         return session.execute(query).all().size();
     }
 
