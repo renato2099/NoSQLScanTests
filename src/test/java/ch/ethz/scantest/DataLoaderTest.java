@@ -18,7 +18,7 @@ public class DataLoaderTest {
         long startTime = System.nanoTime();
         long actual = kv.select(kv.getContainerName(), kv.getTableName(), percentage);
         long endTime = System.nanoTime();
-        Log.info(String.format("[Scan %s] Elapsed:%d", kv.getType().toString(), (endTime - startTime) / 1000));
+        Log.info(String.format("[Scan %s] Elapsed:%d msecs", kv.getType().toString(), (endTime - startTime) / 1000000));
         return actual;
     }
 
@@ -26,7 +26,7 @@ public class DataLoaderTest {
         long startTime = System.nanoTime();
         long actual = kv.selectAll(kv.getContainerName(), kv.getTableName());
         long endTime = System.nanoTime();
-        Log.info(String.format("[Scan %s] Elapsed:%d", kv.getType(), (endTime - startTime) / 1000));
+        Log.info(String.format("[Scan %s] Elapsed:%d msecs", kv.getType(), (endTime - startTime) / 1000000));
         return actual;
     }
 
@@ -35,7 +35,7 @@ public class DataLoaderTest {
         long startTime = System.nanoTime();
         dl.load(nOps, kvType, bSize);
         long endTime = System.nanoTime();
-        Log.info(String.format("[Load %s] Elapsed:%d", kvType.toString(), (endTime - startTime) / 1000));
+        Log.info(String.format("[Load %s] Elapsed:%d msecs", kvType.toString(), (endTime - startTime) / 1000000));
     }
 
     @After
