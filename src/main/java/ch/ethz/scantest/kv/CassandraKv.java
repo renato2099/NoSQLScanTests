@@ -89,7 +89,7 @@ public class CassandraKv implements Kv {
     public long selectAll(String keyspace, String table) {
         Session session = cluster.connect();
         Select query = QueryBuilder.select().all().from(CONTAINER, TABLE_NAME);
-        Log.info(String.format("[Scan %s] Scanning %s.%s", CASSANDRA.toString(), CONTAINER, TABLE_NAME));
+        Log.info(String.format("[ScanOp %s] Scanning %s.%s", CASSANDRA.toString(), CONTAINER, TABLE_NAME));
         return session.execute(query).all().size();
     }
 
