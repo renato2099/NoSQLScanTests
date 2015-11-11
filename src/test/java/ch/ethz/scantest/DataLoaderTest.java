@@ -8,8 +8,8 @@ import org.junit.After;
  * Created by marenato on 02.11.15.
  */
 public class DataLoaderTest {
-    public static final long DEFAULT_BATCH = 10;
-    public static final long DEFAULT_OPS = 12000000;
+    public static final long DEFAULT_BATCH = 1;
+    public static final long DEFAULT_OPS = 120000000;
     public static final int DEFAULT_NTHREADS = 12;
     public static Kv kv;
     public static Logger Log = Logger.getLogger(DataLoaderTest.class);

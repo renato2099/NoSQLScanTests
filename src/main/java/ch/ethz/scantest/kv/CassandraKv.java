@@ -18,7 +18,7 @@ import java.util.Properties;
  */
 public class CassandraKv implements Kv {
 
-    private static final int HIGHER_TIMEOUT = 3600000;
+    private static final int HIGHER_TIMEOUT = 360000000;
     private static final String CASSANDRA_PROPS = "cassandra.properties";
     public static final String CONTAINER = "scanks";
     private static final String REPL_FACTOR = "1";
@@ -30,7 +30,7 @@ public class CassandraKv implements Kv {
     public void connect(String node, String port) {
         cluster = Cluster.builder().withPort(Integer.parseInt(port))
                 .addContactPoint(node).build();
-        cluster.getConfiguration().getSocketOptions().setReadTimeoutMillis(HIGHER_TIMEOUT);
+        cluster.getConfiguration().getSocketOptions().setReadTimeoutMillis(HIGHER_TIMEOUT).setConnectTimeoutMillis(HIGHER_TIMEOUT);
         Metadata md = cluster.getMetadata();
         Log.info(String.format("Connected to: %s\n", md.getClusterName()));
         for ( Host h : md.getAllHosts() ) {
