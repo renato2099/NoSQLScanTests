@@ -31,7 +31,7 @@ public class CassandraKv implements Kv {
     public void connect(String node, String port) {
         cluster = Cluster.builder().withPort(Integer.parseInt(port))
                 .addContactPoint(node).build();
-        cluster.getConfiguration().getSocketOptions().setReadTimeoutMillis(HIGHER_TIMEOUT);
+        cluster.getConfiguration().getSocketOptions().setConnectTimeoutMillis(HIGHER_TIMEOUT).setReadTimeoutMillis(HIGHER_TIMEOUT);
         Metadata md = cluster.getMetadata();
         Log.info(String.format("Connected to: %s\n", md.getClusterName()));
         for ( Host h : md.getAllHosts() ) {
@@ -79,6 +79,7 @@ public class CassandraKv implements Kv {
                     new Object[] { idStart, dGen.genFixedText(LAST_NAME), dGen.genFixedText(FIRST_NAME), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
             insert.setConsistencyLevel(ConsistencyLevel.ANY);
+            batch.tim
             sb.append(" ").append(idStart);
             idStart++;
             batch.add(insert);

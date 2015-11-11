@@ -84,19 +84,16 @@ public class HBaseKv implements Kv {
      *
      * @throws IOException
      */
-    public static void createHBaseConf() throws IOException {
+    public static void createHBaseConf(String hMaster, String hPort, String zook, String zkPort) throws IOException {
         hbaseConf = HBaseConfiguration.create();
 //        hbaseConf.set("hbase.coprocessor.region.classes",
 //                "ch.ethz.scantest.kv.CoprocessorFilter");
+        hbaseConf.set("hbase.zookeeper.quorum", zook);
+        hbaseConf.set("hbase.zookeeper.property.clientPort", zkPort);
+        hbaseConf.set("hbase.master", hMaster.concat(":").concat(hPort));
         hbaseConf.setInt("hbase.hregion.memstore.flush.size", 100 * 1024);
         hbaseConf.setInt("hbase.regionserver.nbreservationblocks", 1);
 
-//        final String rootdir = "/tmp/hbase.test.dir/";
-//        File rootdirFile = new File(rootdir);
-//        if (rootdirFile.exists()) {
-//            delete(rootdirFile);
-//        }
-//        hbaseConf.set("hbase.rootdir", rootdir);
     }
 
     @Override
@@ -114,9 +111,11 @@ public class HBaseKv implements Kv {
         Properties props = Utils.loadProperties(HBASE_PROPS);
         String cNode = props.getProperty("entry_node");
         String port = props.getProperty("port");
+        String zNode = props.getProperty("zk");
+        String zp = props.getProperty("zk_port");
         Log.info(cNode + port);
         try {
-            createHBaseConf();
+            createHBaseConf(cNode, port, zNode, zp);
             admin = new HBaseAdmin(hbaseConf);
             HTableDescriptor desc = new HTableDescriptor(CONTAINER);
             desc.addFamily(new HColumnDescriptor(TABLE_NAME));
