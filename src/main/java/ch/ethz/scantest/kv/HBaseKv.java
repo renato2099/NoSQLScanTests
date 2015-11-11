@@ -41,10 +41,13 @@ public class HBaseKv implements Kv {
                 HTable hTable = null;
                 try {
                     hTable = new HTable(hbaseConf, CONTAINER);
+                    Log.info(String.format("[Load %s] Range %d tuples.", HBASE.toString(), rStart));
                     for (int i = 1; i <= nBatch; i++) {
                         // generate statement of size bSize
                         getBatch(bSize, idStart, hTable);
                         idStart += bSize;
+                        if (idStart % 1000000 == 1)
+                            Log.info(String.format("[Load %s] Inserted %d tuples.", HBASE.toString(), idStart));
                     }
                     // execute remaining
                     if (nOps - (nBatch * bSize) > 0) {
