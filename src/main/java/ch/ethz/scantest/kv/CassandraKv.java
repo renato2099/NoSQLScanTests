@@ -18,8 +18,7 @@ import java.util.Properties;
  */
 public class CassandraKv implements Kv {
 
-    // read timeout 60 minutes
-    private static final int HIGHER_TIMEOUT = 3600000;
+    private static final int HIGHER_TIMEOUT = 360000000;
     private static final String CASSANDRA_PROPS = "cassandra.properties";
     public static final String CONTAINER = "scanks";
     private static final String REPL_FACTOR = "1";
@@ -79,7 +78,6 @@ public class CassandraKv implements Kv {
                     new Object[] { idStart, dGen.genFixedText(LAST_NAME), dGen.genFixedText(FIRST_NAME), dGen.genDouble(), dGen.genInt(), dGen.getCountry() });
             // is this the right way to set consistency level for Batch?
             insert.setConsistencyLevel(ConsistencyLevel.ANY);
-            batch.tim
             sb.append(" ").append(idStart);
             idStart++;
             batch.add(insert);
