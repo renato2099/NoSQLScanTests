@@ -1,12 +1,8 @@
 package ch.ethz.scantest;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.kv.Kv.kvStores.*;
 
-import ch.ethz.scantest.kv.CassandraKv;
-import ch.ethz.scantest.kv.HBaseKv;
-import ch.ethz.scantest.kv.Kv;
-import org.apache.log4j.Logger;
-import org.junit.After;
+import ch.ethz.kv.CassandraKv;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -1,6 +1,7 @@
 package ch.ethz.scantest;
 
-import ch.ethz.scantest.kv.Kv;
+import ch.ethz.datagen.DataLoader;
+import ch.ethz.kv.Kv;
 import org.apache.log4j.Logger;
 import org.junit.After;
 
