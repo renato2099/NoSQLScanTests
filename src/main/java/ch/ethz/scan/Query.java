@@ -30,7 +30,7 @@ public class Query {
         Random r = new Random();
         switch (qId) {
             case 1:
-                q.addScan(new Scan<>("lineitem", "l_shipdate", r.nextDouble(), RangeOp.LOWER_EQ, new HBaseKv()));
+                q.addScan(new Scan<>("lineitem", "l_shipdate", r.nextLong(), RangeOp.LOWER_EQ, new HBaseKv()));
                 break;
             case 2:
                 q.addScan(new Scan<>("nation", "n_regionkey", r.nextInt(), RangeOp.LOWER, new MongoKv()));
