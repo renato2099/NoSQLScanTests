@@ -55,7 +55,8 @@ public interface Kv {
      */
     long select(String schema, String table, double percent);
 
-    long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value);
+    long scan(String keyspace, String tabName, String col, QueryBroker.RangeOp qScanOp, Long value);
+
     /**
      * Gets a kv type
      * @return

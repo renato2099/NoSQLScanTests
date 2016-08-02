@@ -184,8 +184,41 @@ public class HBaseKv implements Kv {
     }
 
     @Override
-    public long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value) {
-        return 0;
+    public long scan(String keyspace, String tabName, String col, QueryBroker.RangeOp qScanOp, Long value) {
+        CompareFilter.CompareOp op = CompareFilter.CompareOp.LESS;
+        switch (qScanOp) {
+            case GREATER:
+                op = CompareFilter.CompareOp.GREATER;
+                break;
+            case GREATER_EQ:
+                op = CompareFilter.CompareOp.GREATER_OR_EQUAL;
+                break;
+            case LOWER:
+                op = CompareFilter.CompareOp.LESS;
+                break;
+            case LOWER_EQ:
+                op = CompareFilter.CompareOp.LESS_OR_EQUAL;
+                break;
+            case LIKE:
+                throw new RuntimeException("LIKE Not supported in HBASE!");
+        }
+        Filter colFilter = new SingleColumnValueFilter(Bytes.toBytes(tabName), Bytes.toBytes(col),
+                op, Bytes.toBytes(value));
+        Scan scan = new Scan();
+        scan.setFilter(colFilter);
+        long cnt = 0;
+        try {
+            HTable hTable = new HTable(hbaseConf, keyspace);
+            ResultScanner resScanner = hTable.getScanner(scan);
+            Result next = resScanner.next();
+            while (next != null) {
+                cnt++;
+                next = resScanner.next();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return cnt;
     }
 
     @Override
