@@ -5,6 +5,7 @@ package ch.ethz.kv;
  */
 import ch.ethz.datagen.DataGenerator;
 import ch.ethz.Utils;
+import ch.ethz.scan.QueryBroker;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -180,6 +181,11 @@ public class HBaseKv implements Kv {
             e.printStackTrace();
         }
         return cnt;
+    }
+
+    @Override
+    public long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value) {
+        return 0;
     }
 
     @Override

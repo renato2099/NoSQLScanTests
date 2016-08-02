@@ -2,6 +2,7 @@ package ch.ethz.kv;
 
 import ch.ethz.datagen.DataGenerator;
 import ch.ethz.Utils;
+import ch.ethz.scan.QueryBroker;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -125,6 +126,11 @@ public class HyperTableKv implements Kv {
             e.printStackTrace();
         }
         return size;
+    }
+
+    @Override
+    public long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value) {
+        return 0;
     }
 
     @Override

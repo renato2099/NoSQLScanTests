@@ -2,6 +2,7 @@ package ch.ethz.kv;
 
 import ch.ethz.datagen.DataGenerator;
 import ch.ethz.Utils;
+import ch.ethz.scan.QueryBroker;
 import com.basho.riak.client.api.RiakClient;
 
 import com.basho.riak.client.api.commands.kv.ListKeys;
@@ -195,6 +196,11 @@ public class RiakKv implements Kv {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+        return 0;
+    }
+
+    @Override
+    public long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value) {
         return 0;
     }
 

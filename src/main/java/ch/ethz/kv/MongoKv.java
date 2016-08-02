@@ -1,5 +1,7 @@
 package ch.ethz.kv;
 
+import ch.ethz.scan.QueryBroker;
+
 /**
  * Created by renatomarroquin on 2016-08-02.
  */
@@ -31,6 +33,11 @@ public class MongoKv implements Kv {
 
     @Override
     public long select(String schema, String table, double percent) {
+        return 0;
+    }
+
+    @Override
+    public long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value) {
         return 0;
     }
 
