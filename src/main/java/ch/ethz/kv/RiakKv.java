@@ -1,7 +1,7 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
-import ch.ethz.scantest.DataGenerator;
-import ch.ethz.scantest.Utils;
+import ch.ethz.datagen.DataGenerator;
+import ch.ethz.Utils;
 import com.basho.riak.client.api.RiakClient;
 
 import com.basho.riak.client.api.commands.kv.ListKeys;
@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.CASSANDRA;
-import static ch.ethz.scantest.kv.Kv.kvStores.RIAK;
+import static ch.ethz.kv.Kv.kvStores.CASSANDRA;
+import static ch.ethz.kv.Kv.kvStores.RIAK;
 
 /**
  * Created by renatomarroquin on 2015-11-02.

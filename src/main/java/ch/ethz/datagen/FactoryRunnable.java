@@ -1,12 +1,12 @@
-package ch.ethz.scantest;
+package ch.ethz.datagen;
 
 
-import ch.ethz.scantest.kv.CassandraKv;
-import static ch.ethz.scantest.kv.Kv.kvStores;
+import ch.ethz.kv.CassandraKv;
+import static ch.ethz.kv.Kv.kvStores;
 
-import ch.ethz.scantest.kv.HBaseKv;
-import ch.ethz.scantest.kv.HyperTableKv;
-import ch.ethz.scantest.kv.RiakKv;
+import ch.ethz.kv.HBaseKv;
+import ch.ethz.kv.HyperTableKv;
+import ch.ethz.kv.RiakKv;
 import org.apache.log4j.Logger;
 
 /**

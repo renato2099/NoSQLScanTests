@@ -1,9 +1,9 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.kv.Kv.kvStores.*;
 
-import ch.ethz.scantest.DataGenerator;
-import ch.ethz.scantest.Utils;
+import ch.ethz.datagen.DataGenerator;
+import ch.ethz.Utils;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.QueryBuilder;

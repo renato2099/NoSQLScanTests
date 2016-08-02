@@ -1,13 +1,13 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
-import java.util.concurrent.ExecutionException;
+import ch.ethz.scan.QueryBroker;
 
 /**
  * Created by renatomarroquin on 2015-11-01.
  */
 public interface Kv {
     enum kvStores {
-        CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), RIAK("riak");
+        CASSANDRA("cassandra"), HBASE("hbase"), HYPERTABLE("hypertable"), RIAK("riak"), MONGO("mongo");
         private String val;
         kvStores(String v) {
             this.val = v;
@@ -55,6 +55,7 @@ public interface Kv {
      */
     long select(String schema, String table, double percent);
 
+    long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value);
     /**
      * Gets a kv type
      * @return

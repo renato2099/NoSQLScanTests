@@ -1,4 +1,4 @@
-package ch.ethz.scantest;
+package ch.ethz;
 
 import java.io.IOException;
 import java.io.InputStream;

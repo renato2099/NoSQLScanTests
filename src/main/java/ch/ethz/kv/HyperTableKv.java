@@ -1,18 +1,16 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
-import ch.ethz.scantest.DataGenerator;
-import ch.ethz.scantest.Utils;
+import ch.ethz.datagen.DataGenerator;
+import ch.ethz.Utils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.hypertable.thrift.ThriftClient;
 import org.hypertable.thriftgen.*;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.HYPERTABLE;
+import static ch.ethz.kv.Kv.kvStores.HYPERTABLE;
 
 /**
  * Created by renatomarroquin on 2015-11-02.

@@ -1,4 +1,4 @@
-package ch.ethz.scantest;
+package ch.ethz.datagen;
 
 import org.mortbay.log.Log;
 
@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static ch.ethz.scantest.kv.Kv.*;
+import static ch.ethz.kv.Kv.*;
 
 
 /**

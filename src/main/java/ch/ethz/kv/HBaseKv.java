@@ -1,10 +1,10 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
 /**
  * Created by marenato on 02.11.15.
  */
-import ch.ethz.scantest.DataGenerator;
-import ch.ethz.scantest.Utils;
+import ch.ethz.datagen.DataGenerator;
+import ch.ethz.Utils;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -17,7 +17,7 @@ import org.apache.hadoop.conf.Configuration;
 import java.io.IOException;
 import java.util.Properties;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.kv.Kv.kvStores.*;
 
 /**
  * HBase key value implementation
@@ -90,7 +90,7 @@ public class HBaseKv implements Kv {
     public static void createHBaseConf(String hMaster, String hPort, String zook, String zkPort) throws IOException {
         hbaseConf = HBaseConfiguration.create();
 //        hbaseConf.set("hbase.coprocessor.region.classes",
-//                "ch.ethz.scantest.kv.CoprocessorFilter");
+//                "ch.ethz.kv.CoprocessorFilter");
         hbaseConf.set("hbase.zookeeper.quorum", zook);
         hbaseConf.set("hbase.zookeeper.property.clientPort", zkPort);
         hbaseConf.set("hbase.master", hMaster.concat(":").concat(hPort));
@@ -180,7 +180,6 @@ public class HBaseKv implements Kv {
             e.printStackTrace();
         }
         return cnt;
-
     }
 
     @Override
