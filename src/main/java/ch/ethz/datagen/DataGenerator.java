@@ -1,4 +1,4 @@
-package ch.ethz.scantest;
+package ch.ethz.datagen;
 
 import org.apache.hadoop.hbase.util.Strings;
 

@@ -1,10 +1,11 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
 /**
  * Created by marenato on 02.11.15.
  */
-import ch.ethz.scantest.DataGenerator;
-import ch.ethz.scantest.Utils;
+import ch.ethz.datagen.DataGenerator;
+import ch.ethz.Utils;
+import ch.ethz.scan.QueryBroker;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -17,7 +18,7 @@ import org.apache.hadoop.conf.Configuration;
 import java.io.IOException;
 import java.util.Properties;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.kv.Kv.kvStores.*;
 
 /**
  * HBase key value implementation
@@ -90,7 +91,7 @@ public class HBaseKv implements Kv {
     public static void createHBaseConf(String hMaster, String hPort, String zook, String zkPort) throws IOException {
         hbaseConf = HBaseConfiguration.create();
 //        hbaseConf.set("hbase.coprocessor.region.classes",
-//                "ch.ethz.scantest.kv.CoprocessorFilter");
+//                "ch.ethz.kv.CoprocessorFilter");
         hbaseConf.set("hbase.zookeeper.quorum", zook);
         hbaseConf.set("hbase.zookeeper.property.clientPort", zkPort);
         hbaseConf.set("hbase.master", hMaster.concat(":").concat(hPort));
@@ -180,7 +181,44 @@ public class HBaseKv implements Kv {
             e.printStackTrace();
         }
         return cnt;
+    }
 
+    @Override
+    public long scan(String keyspace, String tabName, String col, QueryBroker.RangeOp qScanOp, Long value) {
+        CompareFilter.CompareOp op = CompareFilter.CompareOp.LESS;
+        switch (qScanOp) {
+            case GREATER:
+                op = CompareFilter.CompareOp.GREATER;
+                break;
+            case GREATER_EQ:
+                op = CompareFilter.CompareOp.GREATER_OR_EQUAL;
+                break;
+            case LOWER:
+                op = CompareFilter.CompareOp.LESS;
+                break;
+            case LOWER_EQ:
+                op = CompareFilter.CompareOp.LESS_OR_EQUAL;
+                break;
+            case LIKE:
+                throw new RuntimeException("LIKE Not supported in HBASE!");
+        }
+        Filter colFilter = new SingleColumnValueFilter(Bytes.toBytes(tabName), Bytes.toBytes(col),
+                op, Bytes.toBytes(value));
+        Scan scan = new Scan();
+        scan.setFilter(colFilter);
+        long cnt = 0;
+        try {
+            HTable hTable = new HTable(hbaseConf, keyspace);
+            ResultScanner resScanner = hTable.getScanner(scan);
+            Result next = resScanner.next();
+            while (next != null) {
+                cnt++;
+                next = resScanner.next();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return cnt;
     }
 
     @Override

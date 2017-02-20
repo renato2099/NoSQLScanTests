@@ -1,10 +1,10 @@
 package ch.ethz.scantest;
 
-import ch.ethz.scantest.kv.HBaseKv;
+import ch.ethz.kv.HBaseKv;
 import org.junit.Before;
 import org.junit.Test;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.kv.Kv.kvStores.*;
 
 /**
  * Created by marenato on 02.11.15.

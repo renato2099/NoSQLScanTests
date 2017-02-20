@@ -1,9 +1,10 @@
-package ch.ethz.scantest.kv;
+package ch.ethz.kv;
 
-import static ch.ethz.scantest.kv.Kv.kvStores.*;
+import static ch.ethz.kv.Kv.kvStores.*;
 
-import ch.ethz.scantest.DataGenerator;
-import ch.ethz.scantest.Utils;
+import ch.ethz.datagen.DataGenerator;
+import ch.ethz.Utils;
+import ch.ethz.scan.QueryBroker;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -101,6 +102,11 @@ public class CassandraKv implements Kv {
         String stmtt = String.format("select * from scanks.employees where salary < %1.4f allow filtering;", percent);
 //        return session.execute(stmt).all().size();
         return session.execute(stmtt).all().size();
+    }
+
+    @Override
+    public long scan(String key, String col, QueryBroker.RangeOp qScanOp, Object value) {
+        return 0;
     }
 
     @Override
