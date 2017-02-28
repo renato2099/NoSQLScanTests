@@ -165,14 +165,6 @@ int main(int argc, char** argv)
 	string dbName = "testdb";
 	double percentage = 0.5;
 
-//        rocksdb::DB* db;
-//        rocksdb::Options options;
-//        options.create_if_missing = true;
-//        rocksdb::Status status =
-//              rocksdb::DB::Open(options, dbPath + dbName, &db);
-//        assert(status.ok());
-//        cout<<status.ok()<<endl;
-
 	if (!readCmdLine(argc, argv, numThreads, numOperations, dbPath, dbName, percentage, load, verbose))
 	{
 		if (check_parameters(numThreads, numOperations, dbPath, dbName, percentage, load, verbose)) {
@@ -185,14 +177,9 @@ int main(int argc, char** argv)
 		{
 			std::cout << "Loading database" << std::endl;
 			bench.load(numThreads, numOperations, verbose);
-		} /*
-		if (idx) {
-			std::cout << "Index scan " << std::endl;
-			bench.idxScan(locator, clusterName);
 		} 
 		std::cout << "Scanning database" << std::endl;
-		bench.scan(percentage, locator, clusterName);
-                */
+		bench.scan(percentage, verbose);
 	}
 	return 0;
 }

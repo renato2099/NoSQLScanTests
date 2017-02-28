@@ -8,19 +8,6 @@
 
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
-//#include "ClusterMetrics.h"
-//#include "Context.h"
-//#include "Cycles.h"
-//#include "Dispatch.h"
-//#include "ShortMacros.h"
-//#include "Crc32C.h"
-//#include "ObjectFinder.h"
-//#include "RamCloud.h"
-//#include "Tub.h"
-//#include "IndexLookup.h"
-//#include "TableEnumerator.h"
-
-//using namespace RAMCloud;
 
 const int session_timeout = 100000;
 const std::string tName = "employees";
@@ -30,23 +17,23 @@ const int cn_sz = 5;
 const std::string tenStr = "1234567890";
 const std::string fiveStr = "12345";
 const uint32_t server_span = 4;
+using Clock = std::chrono::steady_clock;
 
    class Benchmark
    {
    	private:
-   		void rcInsert(int nInserts, long idRange, std::string dbPath,  std::string dbName, bool verbose);
+   		void rcInsert(int nInserts, long idRange, rocksdb::DB* db2, bool verbose);
    		std::string genString(int sz);		
    		uint64_t createTable();
-                void setupDb();
                 rocksdb::Options createDefOpts();
+                rocksdb::DB* getDB(std::string, std::string);
                 rocksdb::DB* db;
                 std::string dbPath;
                 std::string dbName;
    	public:
                 int dbStat;
    		void load(int nThreads, int nInserts, bool verbose);
-   		void scan(double percentage, std::string locator, std::string clName);
-		void idxScan(std::string locator, std::string clName);
+   		void scan(double percentage, bool verbose);
                 Benchmark(std::string dp, std::string dn);
 
    };
@@ -54,58 +41,26 @@ const uint32_t server_span = 4;
 Benchmark::Benchmark(std::string dp, std::string dn) {
     dbPath = dp;
     dbName = dn;
+    db = getDB(dbPath, dbName);
 }
 
-void Benchmark::setupDb() {
-//    rocksdb::Status s = rocksdb::DB::Open(createDefOpts, dbPath + dbName, &this->db);
-//    dbStat = 0;
-//    if (!s.ok()) 
-//        dbStat = -1;
-}
-   void Benchmark::idxScan(std::string locator, std::string clName)
- {
-/*	Context context(false);
-	context.transportManager->setSessionTimeout(session_timeout);
-	RamCloud client(&context, locator.c_str(), clName.c_str());
-	uint64_t tableId = 0;
-	try {
-		tableId = client.getTableId(tName.c_str());
-		// checkCreated index if not
-		// scan index
-	} catch (ClientException &e) {
-		std::cout << "[IdxScan] Error while index scanning." << std::endl;
-		std::cout << "[IdxScan] TableId " << tableId << std::endl;
-	}
-        */
- }
-   void Benchmark::scan(double percentage, std::string locator, std::string clName) {
-   	/*Context context(false);
-   	context.transportManager->setSessionTimeout(session_timeout);
-   	RamCloud client(&context, locator.c_str(), clName.c_str());
-	uint64_t tableId = 0;
-	try {
-		tableId = client.getTableId(tName.c_str());
-		Buffer objects, state;
-		size_t receivedSize = 0ul;
-		TableEnumerator tEnum(client, tableId, false);
-		auto beginTime = std::chrono::system_clock::now();
-		while (tEnum.hasNext()) {
-			uint32_t size;
-			const void* objs = 0;
-			tEnum.next(&size, &objs);
-			//currentTablet = client.enumerateTable(tableId, false, currentTablet, state, objects);
-			receivedSize += size;
-#ifndef NDEBUG
-			//std::cout << "Got " << objects.size() << " in " << objects.getNumberChunks() << " Chunks" << std::endl;
-#endif
-		} //while (currentTablet);
-		auto duration = std::chrono::system_clock::now() - beginTime;
-		std::cout << "[Scan] Received " << receivedSize << " bytes\n";
-		std::cout << "[Scan] Elapsed " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms\n";
-	} catch (ClientException &e) {
-		std::cout << "[Scan] Something went wrong while trying to scan." << std::endl;
-		std::cout << "[Scan] TableId:" << tableId << std::endl;
-	}*/
+   void Benchmark::scan(double percentage, bool verbose) {
+        rocksdb::ReadOptions roptions;
+        roptions.verify_checksums = false;
+        auto begin = Clock::now();
+        std::unique_ptr<rocksdb::Iterator> iter(db->NewIterator(roptions));
+        int32_t max = std::numeric_limits<int32_t>::min();
+        int32_t nRecords = 0;
+        for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
+            //TODO deserialize?
+            std::string val = iter->value().ToString();
+            nRecords ++;
+            if (verbose)
+                std::cout << val << std::endl;
+        }
+        auto end = Clock::now();
+        std::cout << "[Scan] Elapsed " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms\n";
+        std::cout << "[Scan] Records read " << nRecords << std::endl;
    }
 
    void Benchmark::load(int nThreads, int nInserts, bool verbose) {
@@ -118,12 +73,6 @@ void Benchmark::setupDb() {
    		std::cout << "[Load] TotalOps: " << nInserts << " with " << nThreads << " threads." <<  std::endl;
 	}
         
-	/*Context context(false);
-   	context.transportManager->setSessionTimeout(session_timeout);
-
-	RamCloud client(&context, coordLocator.c_str(), clusterName.c_str());
-	uint64_t tableId = 0;
-	tableId = createTable(&client);*/
 
    	clock::time_point t0 = clock::now();
    	std::thread* tids = new std::thread[nThreads];
@@ -132,10 +81,10 @@ void Benchmark::setupDb() {
    	long idRange = 1;
    	for (int i = 0; i < nThreads-1; i++)
 	{
-		tids[i] = std::thread(&Benchmark::rcInsert, this, threadOp, idRange, dbPath, dbName, verbose);
+		tids[i] = std::thread(&Benchmark::rcInsert, this, threadOp, idRange, db, verbose);
 		idRange += threadOp;
 	}
-	tids[nThreads-1] = std::thread(&Benchmark::rcInsert, this, (threadOp+nInserts%nThreads), idRange, dbPath, dbName, verbose);
+	tids[nThreads-1] = std::thread(&Benchmark::rcInsert, this, (threadOp+nInserts%nThreads), idRange, db, verbose);
 
    	for (int i = 0; i < nThreads; i++)
 	{
@@ -144,59 +93,60 @@ void Benchmark::setupDb() {
    	clock::time_point t1 = clock::now();
    	milliseconds total_ms = std::chrono::duration_cast<milliseconds>(t1 - t0);
 	std::cout << "[Load] Elapsed ms: " << total_ms.count() << std::endl;
-       /* */
    }
 
-rocksdb::Options Benchmark::createDefOpts() {
-    rocksdb::Options options;
-    options.IncreaseParallelism();
-    options.OptimizeLevelStyleCompaction();
-    options.create_if_missing = true;
-    return options;
-}
-   void Benchmark::rcInsert(int nInserts, long idRange, std::string dbPath, std::string dbName, bool verbose) 
+    rocksdb::Options Benchmark::createDefOpts() {
+        rocksdb::Options options;
+        options.IncreaseParallelism();
+        options.OptimizeLevelStyleCompaction();
+        options.create_if_missing = true;
+        return options;
+    }
+
+   rocksdb::DB* Benchmark::getDB(std::string dbPath, std::string dbName) {
+        rocksdb::DB* db2;
+        std::string fDbPath = dbPath + dbName;
+        rocksdb::Status s = rocksdb::DB::Open(createDefOpts(), fDbPath, &db2);
+        if (!s.ok()) {
+            std::cout<< "Error while opening db " << fDbPath << "\t" << s.ToString() << std::endl;
+            return NULL; 
+        }
+        return db2;
+   }
+
+   void Benchmark::rcInsert(int nInserts, long idRange, rocksdb::DB* db2, bool verbose) 
    {
 	std::cout << "[Load] Start loading " << nInserts << " range " << idRange << std::endl;
    	int cnt = 0;
-        rocksdb::DB* db2;
-        std::string fDbPath = dbPath + dbName;
-        
-        rocksdb::Status s = rocksdb::DB::Open(createDefOpts(), fDbPath, &db2);
-        if (!s.ok()) {
-            std::cout<< "Error while opening db " << fDbPath << std::endl;
-            return;
-        }
-   	/*tpcc::Random_t random;
-	std::string table = "employees";
-   	Context context(false);
-   	context.transportManager->setSessionTimeout(session_timeout);
-   	RamCloud client(&context, locator.c_str(), clName.c_str());
+        std::random_device rd;
+        std::mt19937 rng(rd());
+        std::uniform_int_distribution<int> rYears(1, 100);
+        std::uniform_real_distribution<> rSal(0.0, 1.0);
+        std::string table = "employees";
+        rocksdb::WriteOptions wOpts;
 
    	while(cnt < nInserts) {
    		std::stringstream val;
-   		float salary = random.randomWithin(0.0, 1.0);
+   		float salary = rSal(rng); 
    		if (salary < 0) salary *=-1;
-		int yrs = random.random(1,100);
+		int yrs = rYears(rng);
 		std::string ln = genString(ln_sz);
 		std::string fn = genString(fn_sz);
 		std::string cn = genString(5);
 		val << ln ;
 		val << fn ;
-		val <<  salary;
+		val << salary;
 		val << yrs << cn;
 		std::string value = val.str();
-		//std::cout << idRange << std::endl;
-		const char * vv = value.c_str();
-   		client.write(tableId, (const void*)&idRange, sizeof(idRange), vv, uint32_t(value.size()));
-   		//client.write(tableId, vali.c_str(), downCast<uint16_t>(idRange), val.c_str(), downCast<uint32_t>(strlen(val.c_str())+1));
+                db2->Put(wOpts, rocksdb::Slice(reinterpret_cast<const char*>(&idRange), sizeof(idRange)), rocksdb::Slice(value));
    		if (verbose)
    			if ((cnt*100 / nInserts)%10 == 0)
    				std::cout << "[Load] Inserted tuples " << cnt << std::endl;
-		if (cnt%1000000 == 0)
+		if ((cnt > 0) && (cnt%1000000 == 0))
 			std::cout << "[Load] inserted " << cnt/1000000 + 1 << " millions." << std::endl;
    		idRange ++;
    		cnt ++;
-   	}*/
+   	}
    }
 
    std::string Benchmark::genString(int sz) {
