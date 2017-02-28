@@ -29,3 +29,6 @@ main: $(OBJECTS)
 
 clean:
 	rm -rf *.o main Util *~ /tmp/testdb
+
+reset:
+	rm -rf /tmp/testdb
